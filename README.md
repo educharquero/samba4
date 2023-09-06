@@ -1,2 +1,2 @@
 # samba4
-Controlador de Domínio com SAMBA4 sob Debian 12
+Controlador de Domínio com SAMBA4 sob Debian Linux 12
