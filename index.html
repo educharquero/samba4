@@ -1267,7 +1267,7 @@ fileserver <span class="token operator">=</span> Servidor de Arquivos</code></pr
 <pre><code class="fenced-code-block language-bash">dc01</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">hostname</span> -f</code></pre>
 <h4 class="atx" id="configurando-o-arquivo-de-hosts">Configurando o arquivo de hosts:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hosts.conf</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hosts</code></pre>
 <pre><code class="fenced-code-block language-bash">  .0.0.1           localhost
   <span class="token number">127.0</span>.1.1        dc01.esharknet.edu       dc01
   <span class="token number">192.168</span>.70.150   fileserver.esharknet.edu fileserver
@@ -1297,11 +1297,12 @@ fileserver <span class="token operator">=</span> Servidor de Arquivos</code></pr
 <pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">make</span></code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">make</span> <span class="token function">install</span></code></pre>
-<h4 class="atx" id="editando-o-profile-cole-o-novo-path-no-final-do-arquivo">Editando o profile cole o novo path no final do arquivo:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/profile</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token string">"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</span></code></pre>
+<h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
+<h4 class="atx" id="pathandquotusrlocalsbinusrlocalbinusrsbinusrbinsbinbinoptsambabinoptsambasbinandquot">PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> ~/.bashrc</code></pre>
+<pre><code class="fenced-code-block language-bash"> <span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token string">"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</span></code></pre>
 <h4 class="atx" id="relendo-o-arquivo-de-profile">Relendo o arquivo de profile:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> /etc/profile</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> ~/.bashrc</code></pre>
 <h4 class="atx" id="criando-o-daemon-de-inicializacao-do-samba4-com-o-sistema">Criando o daemon de inicialização do Samba4 com o sistema:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/systemd/system/samba-ad-dc.service</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
@@ -1331,7 +1332,7 @@ fileserver <span class="token operator">=</span> Servidor de Arquivos</code></pr
 <pre><code class="fenced-code-block language-bash">systemctl restart ntpd</code></pre>
 <pre><code class="fenced-code-block language-bash">ntpq -p</code></pre>
 <h4 class="atx" id="provisionando-o-novo-dominio-suportado-pelo-dc01">Provisionando o novo domínio suportado pelo dc01:</h4>
-<pre><code class="fenced-code-block language-bash">samba-tool domain provision --realm<span class="token operator">=</span>esharknet.edu --domain<span class="token operator">=</span>esharknet --dns-backend<span class="token operator">=</span>SAMBA_INTERNAL --adminpass<span class="token operator">=</span>P@ssw0rd --server-role<span class="token operator">=</span>dc --use-rfc2307 --option<span class="token operator">=</span>”interfaces<span class="token operator">=</span>lo enp1s0” --option<span class="token operator">=</span>”bind interfaces <span class="token assign-left variable">only</span><span class="token operator">=</span>yes”</code></pre>
+<pre><code class="fenced-code-block language-bash">samba-tool domain provision --realm<span class="token operator">=</span>esharknet.edu --domain<span class="token operator">=</span>esharknet --dns-backend<span class="token operator">=</span>SAMBA_INTERNAL --adminpass<span class="token operator">=</span>P@ssw0rd --server-role<span class="token operator">=</span>dc --use-rfc2307</code></pre>
 <h4 class="atx" id="habilitando-o-daemon-pra-subir-no-boot-do-sistema">Habilitando o daemon pra subir no boot do sistema:</h4>
 <pre><code class="fenced-code-block language-bash">systemctl daemon-reload</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl <span class="token builtin class-name">enable</span> samba-ad-dc.service</code></pre>
