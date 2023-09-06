@@ -1357,7 +1357,7 @@ Address:        <span class="token number">127.0</span>.0.1<span class="token co
 Name:   dc01.esharknet.edu
 Address: <span class="token number">192.168</span>.70.250</code></pre>
 <h4 class="atx" id="reboot-do-servidor-dc01">Reboot do servidor dc01:</h4>
-<pre><code class="fenced-code-block language-bash">systemctl restart</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">reboot</span></code></pre>
 <h4 class="atx" id="validando-os-servicos-do-samba4-no-boot-do-sistema">Validando os serviços do Samba4 no boot do sistema:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ps</span> aux <span class="token operator">|</span> <span class="token function">grep</span> samba</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ps</span> aux <span class="token operator">|</span> <span class="token function">egrep</span> <span class="token string">"samba|smbd|nmbd|winbind"</span></code></pre>
@@ -1404,7 +1404,7 @@ Address: <span class="token number">192.168</span>.70.250</code></pre>
 <pre><code class="fenced-code-block language-bash">samba-tool user show administrator</code></pre>
 <pre><code class="fenced-code-block language-bash">getent <span class="token function">passwd</span> administrator</code></pre>
 <pre><code class="fenced-code-block language-bash">wbinfo -u</code></pre>
-<pre><code class="fenced-code-block language-bash">wbinfo -u</code></pre>
+<pre><code class="fenced-code-block language-bash">wbinfo -g</code></pre>
 <pre><code class="fenced-code-block language-bash">wbinfo --ping-dc</code></pre>
 <pre><code class="fenced-code-block language-bash">getent group <span class="token string">"Domain Admins"</span></code></pre>
 <h4 class="atx" id="validando-daemons-ativos">Validando daemons ativos:</h4>
