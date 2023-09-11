@@ -1533,7 +1533,7 @@ tinker panic <span class="token number">0</span> <span class="token comment">#(F
 <h4 class="atx" id="provisionando-o-servidor-dc02">Provisionando o servidor DC02:</h4>
 <pre><code class="fenced-code-block language-bash">samba-tool domain <span class="token function">join</span> ESHARKNET.EDU DC -U Administrator --realm<span class="token operator">=</span>ESHARKNET.EDU --dns-backend<span class="token operator">=</span>SAMBA_INTERNAL --option<span class="token operator">=</span><span class="token string">"interfaces=lo enp1s0"</span> --option<span class="token operator">=</span><span class="token string">"bind interfaces only=yes"</span> --option<span class="token operator">=</span><span class="token string">"idmap_ldb:use-rfc2307=yes"</span></code></pre>
 <h4 class="atx" id="habilitando-o-daemon-pra-subir-no-boot-do-sistema-1">Habilitando o daemon pra subir no boot do sistema:</h4>
-<pre><code class="fenced-code-block language-bash">systemctl daemon reload</code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl daemon-reload</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl <span class="token builtin class-name">enable</span> samba-ad-dc.service</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl start samba-ad-dc.service</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl status samba-ad-dc.service</code></pre>
