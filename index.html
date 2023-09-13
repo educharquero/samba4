@@ -1533,7 +1533,7 @@ tinker panic <span class="token number">0</span> <span class="token comment">#(F
 <h4 class="atx" id="provisionando-o-servidor-dc02">Provisionando o servidor DC02:</h4>
 <pre><code class="fenced-code-block language-bash">samba-tool domain <span class="token function">join</span> ESHARKNET.EDU DC -U Administrator --realm<span class="token operator">=</span>ESHARKNET.EDU --dns-backend<span class="token operator">=</span>SAMBA_INTERNAL --option<span class="token operator">=</span><span class="token string">"interfaces=lo enp1s0"</span> --option<span class="token operator">=</span><span class="token string">"bind interfaces only=yes"</span> --option<span class="token operator">=</span><span class="token string">"idmap_ldb:use-rfc2307=yes"</span></code></pre>
 <h4 class="atx" id="habilitando-o-daemon-pra-subir-no-boot-do-sistema-1">Habilitando o daemon pra subir no boot do sistema:</h4>
-<pre><code class="fenced-code-block language-bash">systemctl daemon-reload</code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl daemon reload</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl <span class="token builtin class-name">enable</span> samba-ad-dc.service</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl start samba-ad-dc.service</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl status samba-ad-dc.service</code></pre>
@@ -1851,6 +1851,319 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <pre><code class="fenced-code-block language-bash">*/5 * * * * root  <span class="token function">bash</span> /usr/local/bin/osync.sh /etc/osync/sync.conf --silent</code></pre>
 <h4 class="atx" id="validando-os-logs-em-tempo-real-rode-o-usrlocalbinosyncsh-mantendo-outro-terminal-aberto-com-o-comando-1">Validando os logs em tempo real, rode o /usr/local/bin/osync.sh, mantendo outro terminal aberto com o comando:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">tail</span> -f /var/log/osync.sysvol_sync.log</code></pre>
+<p><a href="mailto:zerolies@disroot.org">zerolies@disroot.org</a></p>
+<p>THAT’S ALL FOLKS!!</p>
+<h1 class="atx" id="construindo-um-fileserver-com-samba4-no-debian-linux-12">Construindo um FileServer com Samba4 no Debian Linux 12</h1>
+<h4 class="atx" id="-2"></h4>
+<h4 class="atx" id="layout-de-rede-usado-no-laboratorio-2">Layout de rede usado no laboratório:</h4>
+<pre><code class="fenced-code-block language-bash">firewall           <span class="token number">192.168</span>.70.254 - <span class="token number">192.168</span>.122.254
+dc01               <span class="token number">192.168</span>.70.250   <span class="token punctuation">(</span>ssh <span class="token number">22250</span><span class="token punctuation">)</span>
+dc02               <span class="token number">192.168</span>.70.200   <span class="token punctuation">(</span>ssh <span class="token number">22200</span><span class="token punctuation">)</span>
+fileserver         <span class="token number">192.168</span>.70.150   <span class="token punctuation">(</span>ssh <span class="token number">22150</span><span class="token punctuation">)</span>
+
+firewall           Roteamento por Iptables
+dc01               Controlador de Domínio primário
+dc02               Controlador de Domínio secundário
+fileserver         Servidor de Arquivos</code></pre>
+<h4 class="atx" id="instalando-as-dependencias-para-compilacao-do-codigo-fonte-do-samba4-1">Instalando as dependências para compilação do código fonte do Samba4:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">DEBIAN_FRONTEND</span><span class="token operator">=</span>noninteractive<span class="token punctuation">;</span><span class="token function">apt-get</span> update<span class="token punctuation">;</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token function">vim</span> ntp net-tools <span class="token function">rsync</span> acl apt-utils attr autoconf bind9utils binutils bison build-essential ntp <span class="token function">rsync</span> ccache chrpath <span class="token function">curl</span> debhelper dnsutils docbook-xml docbook-xsl flex gcc gdb <span class="token function">git</span> glusterfs-common <span class="token function">gzip</span> heimdal-multidev <span class="token function">hostname</span> <span class="token function">htop</span> krb5-config krb5-user lcov libacl1-dev libarchive-dev libattr1-dev libavahi-common-dev libblkid-dev libbsd-dev libcap-dev libcephfs-dev libcups2-dev libdbus-1-dev libglib2.0-dev libgnutls28-dev libgpgme11-dev libicu-dev libjansson-dev libjs-jquery libjson-perl libkrb5-dev libldap2-dev liblmdb-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpcap-dev libpopt-dev libreadline-dev libsystemd-dev libtasn1-bin libtasn1-dev libunwind-dev lmdb-utils locales lsb-release <span class="token function">make</span> mawk mingw-w64 patch perl perl-modules pkg-config procps psmisc python3 python3-cryptography python3-dbg python3-dev python3-dnspython python3-gpg python3-iso8601 python3-markdown python3-matplotlib python3-pexpect python3-pyasn1 <span class="token function">rsync</span> <span class="token function">sed</span>  <span class="token function">tar</span> tree uuid-dev <span class="token function">wget</span> xfslibs-dev xsltproc zlib1g-dev -y</code></pre>
+<h4 class="atx" id="setando-e-validando-o-hostname-do-dc02-1">Setando e validando o hostname do dc02:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hostname</code></pre>
+<pre><code class="fenced-code-block language-bash">fileserver</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">hostname</span> -f</code></pre>
+<pre><code class="fenced-code-block language-bash">fileserver.esharknet.edu</code></pre>
+<h4 class="atx" id="configurando-o-arquivo-de-hosts-2">Configurando o arquivo de hosts:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hosts</code></pre>
+<pre><code class="fenced-code-block language-bash">.0.0.1              localhost
+<span class="token number">127.0</span>.1.1           fileserver.esharknet.edu fileserver
+<span class="token number">192.168</span>.70.150      fileserver.esharknet.edu fileserver
+<span class="token number">192.168</span>.70.200      dc02.esharknet.edu       dc02
+<span class="token number">192.168</span>.70.250      dc01.esharknet.edu       dc01
+<span class="token number">192.168</span>.70.254      firewall.esharknet.edu   firewall</code></pre>
+<h4 class="atx" id="setando-ip-fixo-no-servidor-dc02-1">Setando ip fixo no servidor dc02:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/network/interfaces</code></pre>
+<pre><code class="fenced-code-block language-bash">allow-hotplug enp1s0
+iface enp1s0 inet static
+address           <span class="token number">192.168</span>.70.150
+netmask           <span class="token number">255.255</span>.255.0
+gateway           <span class="token number">192.168</span>.70.254</code></pre>
+<h4 class="atx" id="apontando-o-endereco-do-resolvedor-de-nomes-principal-da-rede-pro-controlador-de-dominio-primario-dc01-temporario">Apontando o endereço do resolvedor de nomes principal da rede pro Controlador de domínio primário, dc01 (temporário):</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/resolv.conf</code></pre>
+<pre><code class="fenced-code-block language-bash">domain           esharknet.edu
+search           esharknet.edu.
+nameserver       <span class="token number">192.168</span>.70.250 <span class="token comment">#(dc01)</span>
+nameserver       <span class="token number">192.168</span>.70.200 <span class="token comment">#(dc02)</span></code></pre>
+<h4 class="atx" id="bloqueando-alteracao-do-resolvconf-1">Bloqueando alteração do resolv.conf:</h4>
+<pre><code class="fenced-code-block language-bash">chattr +i /etc/resolv.conf</code></pre>
+<h4 class="atx" id="validando-a-resolucao-de-nomes-pelo-dc01-1">Validando a resolução de nomes pelo dc01:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">nslookup</span> esharknet.edu</code></pre>
+<pre><code class="fenced-code-block language-bash">Server:         <span class="token number">192.168</span>.70.250
+Address:        <span class="token number">192.168</span>.70.250<span class="token comment">#53</span>
+
+Name:   esharknet.edu
+Address: <span class="token number">192.168</span>.70.250
+Name:   esharknet.edu
+Address: <span class="token number">192.168</span>.70.200</code></pre>
+<h4 class="atx" id="relendo-as-configuracoes-de-rede-1">Relendo as configurações de rede:</h4>
+<pre><code class="fenced-code-block language-bash">systemctl restart networking</code></pre>
+<h4 class="atx" id="validando-o-ip-da-placa-2">Validando o ip da placa:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -c addr</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -br <span class="token function">link</span></code></pre>
+<h4 class="atx" id="baixando-e-compilando-o-codigo-fonte-do-samba4-2">Baixando e compilando o código fonte do Samba4:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.18.6.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.18.6.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.18.6</code></pre>
+<pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">make</span> <span class="token operator">&amp;&amp;</span> <span class="token function">make</span> <span class="token function">install</span></code></pre>
+<h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc-2">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
+<h4 class="atx" id="pathandquotusrlocalsbinusrlocalbinusrsbinusrbinsbinbinoptsambabinoptsambasbinandquot-2">PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> ~/.bashrc</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token string">"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</span></code></pre>
+<h4 class="atx" id="relendo-o-arquivo-de-profile-2">Relendo o arquivo de profile:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> ~/.bashrc</code></pre>
+<h4 class="atx" id="criando-o-daemon-de-inicializacao-do-samba4-com-o-sistema-2">Criando o daemon de inicialização do Samba4 com o sistema:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/systemd/system/samba-ad-dc.service</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba4 Active Directory Slave Domain Controller
+   <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
+
+<span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
+   <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/samba -D
+   <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/samba.pid
+
+<span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+   <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x /etc/systemd/system/samba-ad-dc.service</code></pre>
+<h4 class="atx" id="configurando-o-servico-de-sincronizacao-de-horario-apontando-pro-controlador-de-dominio-primario-dc01-1">Configurando o serviço de sincronização de horário, apontando pro Controlador de domínio primário, dc01:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mv</span> /etc/ntpsec/ntp.conf<span class="token punctuation">{</span>,.orig<span class="token punctuation">}</span></code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/ntpsec/ntp.conf</code></pre>
+<pre><code class="fenced-code-block language-bash">driftfile /var/lib/ntpsec/ntp.drift
+leapfile /usr/share/zoneinfo/leap-seconds.list
+tos minclock <span class="token number">4</span> minsane <span class="token number">3</span>
+pool <span class="token number">192.168</span>.70.250 iburst <span class="token comment">#(dc01)</span>
+restrict default kod nomodify nopeer noquery limited
+restrict <span class="token number">127.0</span>.0.1
+restrict ::1
+tinker panic <span class="token number">0</span> <span class="token comment">#(Usado SOMENTE em VMs)</span></code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl restart ntp</code></pre>
+<pre><code class="fenced-code-block language-bash">ntpq -p</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">date</span></code></pre>
+<h4 class="atx" id="atencao-nao-provisione-o-samba-do-fileserver">ATENÇÃO!! NÃO PROVISIONE O SAMBA DO FILESERVER!!</h4>
+<h4 class="atx" id="atencao-nao-provisione-o-samba-do-fileserver-1">ATENÇÃO!! NÃO PROVISIONE O SAMBA DO FILESERVER!!</h4>
+<h4 class="atx" id="-3"></h4>
+<h4 class="atx" id="configurando-o-etckrb5conf">Configurando o /etc/krb5.conf:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token comment"># vim /etc/krb5.conf</span></code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>libdefaults<span class="token punctuation">]</span> <span class="token comment">#(sem espaço no canto dessa linha)</span>
+   dns_lookup_realm <span class="token operator">=</span> <span class="token boolean">false</span>
+   dns_lookup_kdc <span class="token operator">=</span> <span class="token boolean">true</span>
+   default_realm <span class="token operator">=</span> ESHARKNET.EDU</code></pre>
+<h4 class="atx" id="configurando-o-time-server">Configurando o time server:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">apt-get</span> <span class="token function">install</span> ntp ntpdate -y</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">nano</span> /etc/ntpsec/ntp.conf</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token comment"># Relógio Local ( Nota: Este não é o endereço localhost! )</span>
+   server <span class="token number">127.127</span>.1.0
+   fudge  <span class="token number">127.127</span>.1.0 stratum <span class="token number">10</span>
+   server <span class="token number">192.168</span>.70.250 iburst prefer <span class="token comment">#(dc01)</span>
+   driftfile /var/lib/ntp/ntp.drift
+   logfile   /var/log/ntp
+   restrict default ignore
+   restrict <span class="token number">127.0</span>.0.1
+   restrict <span class="token number">192.168</span>.70.250   mask <span class="token number">255.255</span>.255.255    nomodify notrap nopeer noquery</code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl restart ntp</code></pre>
+<pre><code class="fenced-code-block language-bash">ntpq -p</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">date</span></code></pre>
+<h4 class="atx" id="validando-mapeamentos">Validando mapeamentos:</h4>
+<pre><code class="fenced-code-block language-bash">getent hosts fileserver</code></pre>
+<h4 class="atx" id="configurando-o-smbconf">Configurando o smb.conf:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token comment"># vim /opt/samba/etc/smb.conf</span></code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token comment"># Define as informações do domínio.</span>
+   <span class="token punctuation">[</span>global<span class="token punctuation">]</span>
+   workgroup <span class="token operator">=</span> ESHARKNET
+   realm <span class="token operator">=</span> esharknet.edu
+
+<span class="token comment"># Define que esse servidor não aceita acesso sem autenticação.</span>
+    security <span class="token operator">=</span> ADS
+
+<span class="token comment"># Defique qual usuário no domínio se equivale ao root.</span>
+    username map <span class="token operator">=</span> /opt/samba/etc/user.map
+
+<span class="token comment"># Parâmetros para que as permissões se comportem como o Windows.</span>
+<span class="token comment"># Herdando permissões e guardando credenciais de logins bem-sucedidos.</span>
+    map acl inherit <span class="token operator">=</span> <span class="token function">yes</span>
+    store dos attributes <span class="token operator">=</span> <span class="token function">yes</span>
+
+<span class="token comment"># Os VFS objects que serão usados.</span>
+    vfs objects <span class="token operator">=</span> acl_xattr acl_tdb
+
+<span class="token comment"># Arquivo de configuração do kerberos e qual método será usado.</span>
+    dedicated keytab <span class="token function">file</span> <span class="token operator">=</span> /etc/krb5.keytab
+    kerberos method <span class="token operator">=</span> secrets and keytab
+
+<span class="token comment"># Configurações do backend para mapeamento de IDs para compatibilidade com Windows.</span>
+    idmap config * <span class="token builtin class-name">:</span> backend <span class="token operator">=</span> tdb
+    idmap config * <span class="token builtin class-name">:</span> range <span class="token operator">=</span> <span class="token number">3000</span>-7999
+    idmap config ESHARKNET: backend <span class="token operator">=</span> rid
+    idmap config ESHARKNET: range <span class="token operator">=</span> <span class="token number">10000</span>-999999
+
+<span class="token comment"># Define que o usuário root não precisa ser mapeado.</span>
+    min domain uid <span class="token operator">=</span> <span class="token number">0</span>
+
+<span class="token comment"># Shell padrão e diretório home padrão.</span>
+    template shell <span class="token operator">=</span> /bin/bash
+    template homedir <span class="token operator">=</span> /home/%U
+
+<span class="token comment"># Define o comportamento do Winbind.</span>
+    winbind refresh tickets <span class="token operator">=</span> <span class="token function">yes</span>
+    winbind use default domain <span class="token operator">=</span> <span class="token function">yes</span>
+    winbind enum <span class="token function">users</span> <span class="token operator">=</span> <span class="token function">yes</span>
+    winbind enum <span class="token function">groups</span> <span class="token operator">=</span> <span class="token function">yes</span>
+    winbind cache <span class="token function">time</span> <span class="token operator">=</span> <span class="token number">7200</span>
+    winbind nss info <span class="token operator">=</span> rfc2307
+
+<span class="token comment"># Cada escrita  de dados será seguida por um fsync() para garantir que os dados sejam gravados no disco. Usei em ext4 e xfs mas não testei no btrfs.</span>
+   <span class="token function">sync</span> always <span class="token operator">=</span> <span class="token function">yes</span>
+   strict <span class="token function">sync</span> <span class="token operator">=</span> <span class="token function">yes</span>
+
+<span class="token comment"># Onde serão gravados os logs e o nivel de detalhes.</span>
+   log <span class="token function">file</span> <span class="token operator">=</span> /var/log/samba/%m.log
+   log level <span class="token operator">=</span> <span class="token number">3</span>
+
+   <span class="token punctuation">[</span>FILESERVER<span class="token punctuation">]</span>
+   path <span class="token operator">=</span> /home/fileserver
+   comment <span class="token operator">=</span> Compartilhamentos da Rede
+   <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No
+   browseable <span class="token operator">=</span> <span class="token function">yes</span>
+   vfs objects <span class="token operator">=</span> acl_xattr acl_tdb full_audit
+   full_audit:success <span class="token operator">=</span> renameat rewinddir unlinkat
+   full_audit:prefix <span class="token operator">=</span> %U<span class="token operator">|</span>%I<span class="token operator">|</span>%S
+   full_audit:failure <span class="token operator">=</span> none
+   full_audit:facility <span class="token operator">=</span> local4
+   full_audit:priority <span class="token operator">=</span> alert
+
+<span class="token comment"># PARÂMETROS USADOS NA AUDITORIA:</span>
+<span class="token comment"># Adiciona todos os vfs objects.</span>
+    acl_xattr acl_tdb full_audit
+<span class="token comment"># arquivos renomeados, diretórios renomeados, arquivos deletados.</span>
+    renameat rewinddir unlinkat
+<span class="token comment"># usuário, ip, ação.</span>
+    %U<span class="token operator">|</span>%I<span class="token operator">|</span>%S</code></pre>
+<pre><code class="fenced-code-block language-bash"> restart.samba</code></pre>
+<h4 class="atx" id="auditando-arquivos-deletados">Auditando arquivos deletados:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">cat</span> /var/log/syslog <span class="token operator">|</span> <span class="token function">grep</span> unlinkat</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">tail</span> -f /var/log/syslog <span class="token operator">|</span> <span class="token function">grep</span> unlinkat <span class="token comment">#(Teste em tempo real).</span></code></pre>
+<h4 class="atx" id="criando-o-diretorio-da-rede">Criando o diretório da rede:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /home/fileserver</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> -R 0770 /home/fileserver</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chown</span> -R root:<span class="token string">"domain admins"</span> /home/fileserver</code></pre>
+<pre><code class="fenced-code-block language-bash">getfacl /home/fileserver</code></pre>
+<h4 class="atx" id="extra-se-optar-por-uso-de-perfil-movel">EXTRA! SE optar por uso de perfil móvel:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /opt/samba/var/lib/samba/profiles</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> -R 0770 /opt/samba/var/lib/samba/profiles</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chown</span> -R root:<span class="token string">"domain admins"</span> /opt/samba/var/lib/samba/profiles</code></pre>
+<h4 class="atx" id="adicionando-o-path-do-optsambaetcsmbconf">Adicionando o path do /opt/samba/etc/smb.conf:</h4>
+<h4 class="atx" id="linkando-as-bibliotecas-para-mapeamento-de-usuarios-de-sistema-local-e-samba4">Linkando as bibliotecas para mapeamento de usuários de sistema local e Samba4:</h4>
+<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd -b <span class="token operator">|</span> <span class="token function">grep</span> LIBDIR</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /opt/samba/lib/libnss_winbind.so.2 /lib/x86-64-linux-gnu</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /lib/x86_64-linux-gnu/libnss_winbind.so.2 /lib/x86_64-linux-gnu/libnss_winbind.so</code></pre>
+<pre><code class="fenced-code-block language-bash">ldconfig</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/nsswitch.conf</code></pre>
+<pre><code class="fenced-code-block language-bash">   passwd: files systemd winbind
+   group: files systemd winbind
+   shadow: files</code></pre>
+<h4 class="atx" id="dando-poderes-de-root-ao-administrator-1">Dando poderes de root ao Administrator:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">nano</span> /opt/samba/etc/user.map</code></pre>
+<pre><code class="fenced-code-block language-bash">   <span class="token operator">!</span>root <span class="token operator">=</span> esharknet.edu <span class="token punctuation">\</span>administrator</code></pre>
+<h4 class="atx" id="criando-o-diretorio-de-logs">Criando o diretório de logs:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /var/log/samba</code></pre>
+<h4 class="atx" id="validando-a-troca-de-tickets-do-kerberos-2">Validando a troca de tickets do Kerberos:</h4>
+<pre><code class="fenced-code-block language-bash">kinit Administrator</code></pre>
+<pre><code class="fenced-code-block language-bash">klist</code></pre>
+<h4 class="atx" id="ingressando-o-fileserver-ao-dominio">Ingressando o Fileserver ao domínio:</h4>
+<pre><code class="fenced-code-block language-bash">net ads <span class="token function">join</span> -U Administrator</code></pre>
+<h4 class="atx" id="subindo-os-servicos-ao-boot-do-sistema">Subindo os serviços ao boot do Sistema:</h4>
+<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd <span class="token operator">&amp;&amp;</span> /opt/samba/sbin/nmbd <span class="token operator">&amp;&amp;</span> /opt/samba/sbin/winbindd</code></pre>
+<h4 class="atx" id="adicionando-o-smbd-ao-boot-do-linux">Adicionando o smbd ao boot do Linux:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /etc/systemd/system</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> smbd.service</code></pre>
+<pre><code class="fenced-code-block language-bash">   <span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba SMBD FileServer
+   <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
+   <span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
+   <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/smbd
+   <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/smbd.pid
+   <span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+   <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
+<h4 class="atx" id="adicionando-o-nmbd-ao-boot-do-linux">Adicionando o nmbd ao boot do Linux:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /etc/systemd/system</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> nmbd.service</code></pre>
+<pre><code class="fenced-code-block language-bash">   <span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba NMBD FileServer
+   <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
+   <span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
+   <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/nmbd
+   <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/nmbd.pid
+   <span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+   <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
+<h4 class="atx" id="adicionando-o-nmbd-ao-boot-do-linux-1">Adicionando o nmbd ao boot do Linux:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /etc/systemd/system</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> winbindd.service</code></pre>
+<pre><code class="fenced-code-block language-bash">   <span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba WINBIND FileServer
+   <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
+   <span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
+   <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/winbindd
+   <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/winbindd.pid
+   <span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+   <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl <span class="token builtin class-name">enable</span> smbd.service nmbd.service winbindd.service</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">pkill</span> smb <span class="token operator">&amp;&amp;</span> <span class="token function">pkill</span> nmb <span class="token operator">&amp;&amp;</span> <span class="token function">pkill</span> winbind</code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl start smbd.service nmbd.service winbindd.service</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl start smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/start.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl stop smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/stop.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl restart smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/restart.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x /sbin/*.samba</code></pre>
+<h4 class="atx" id="facilitando-o-boot-dos-servicos">Facilitando o boot dos serviços:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl start smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/start.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl stop smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/stop.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl restart smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/restart.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x /sbin/*.samba</code></pre>
+<h4 class="atx" id="responde-agora-com">Responde agora com:</h4>
+<pre><code class="fenced-code-block language-bash">start.samba, restart.samba e stop.samba</code></pre>
+<h4 class="atx" id="validando-wbinfo-e-getent">Validando wbinfo e getent:</h4>
+<pre><code class="fenced-code-block language-bash">wbinfo --ping-dc</code></pre>
+<pre><code class="fenced-code-block language-bash">wbinfo -u</code></pre>
+<pre><code class="fenced-code-block language-bash">wbinfo -g</code></pre>
+<pre><code class="fenced-code-block language-bash">getent <span class="token function">passwd</span> Administrator</code></pre>
+<pre><code class="fenced-code-block language-bash">getent group <span class="token string">"domain admins"</span></code></pre>
+<h4 class="atx" id="criando-o-script-de-backup-do-homefileserver">Criando o script de backup do /home/fileserver:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /media/HDEXTERNO</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /opt/samba/bkpdiario.sh</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token shebang important">#!/bin/bash</span>
+   <span class="token assign-left variable">INICIO</span><span class="token operator">=</span><span class="token variable"><span class="token variable">`</span><span class="token function">date</span> +%d/%m/%Y-%H:%M:%S<span class="token variable">`</span></span>
+   <span class="token assign-left variable">LOG</span><span class="token operator">=</span>/var/log/samba/bkpfileserver_<span class="token variable"><span class="token variable">`</span><span class="token function">date</span> +%Y-%m-%d<span class="token variable">`</span></span>.txt
+   <span class="token builtin class-name">echo</span> <span class="token string">" "</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token builtin class-name">echo</span> <span class="token string">" "</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token builtin class-name">echo</span> <span class="token string">"|-----------------------------------------------"</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token builtin class-name">echo</span> <span class="token string">" Sincronizacao iniciada em <span class="token variable">$INICIO</span>"</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token function">umount</span> /media/HDEXTERNO
+   <span class="token function">mount</span> /dev/sdb1 /media/HDEXTERNO
+   <span class="token function">rsync</span> --delete -P -r -z -v /home/fileserver /media/HDEXTERNO/ <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token assign-left variable">FINAL</span><span class="token operator">=</span><span class="token variable"><span class="token variable">`</span><span class="token function">date</span> +%d/%m/%Y-%H:%M:%S<span class="token variable">`</span></span>
+   <span class="token function">umount</span> /media/HDEXTERNO
+   <span class="token builtin class-name">echo</span> <span class="token string">" Sincronizacao Finalizada em <span class="token variable">$FINAL</span>"</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token builtin class-name">echo</span> <span class="token string">"|-----------------------------------------------"</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token builtin class-name">echo</span> <span class="token string">" "</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token builtin class-name">echo</span> <span class="token string">" "</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span></code></pre>
+<h4 class="atx" id="adicionando-o-script-ao-crontab">Adicionando o script ao crontab:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/crontab</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token comment"># Rotinas de backup diário do SAMBA4.</span>
+<span class="token comment"># Minuto/Hora/Dia/Mês/Dia_semana/Usuário/Comando</span>
+   <span class="token number">45</span> <span class="token number">23</span> * * <span class="token number">1</span>-5 root /opt/samba/bkpdiario.sh  <span class="token operator">&gt;</span> /dev/null <span class="token operator"><span class="token file-descriptor important">2</span>&gt;</span><span class="token file-descriptor important">&amp;1</span></code></pre>
+<h4 class="atx" id="vai-montar-o-hd-externo-fazer-o-backup-e-desmontar-o-hd-externo">VAI MONTAR O HD EXTERNO, FAZER O BACKUP E DESMONTAR O HD EXTERNO!</h4>
 <p><a href="mailto:zerolies@disroot.org">zerolies@disroot.org</a></p>
 <p>THAT’S ALL FOLKS!!</p>
 </article>
