@@ -1,3 +1,3 @@
 # samba4
-Controlador de Domínio com SAMBA4 sob Debian Linux 12 - 
-Implementando um Controlador de domínio Primário e Secundário e Fileserver
+Debian Linux 13 - Samba4 compilado 
+Implementando um Controlador de domínio Primário + Secundário e um Servidor de Arquivos.

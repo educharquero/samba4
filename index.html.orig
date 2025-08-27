@@ -1248,64 +1248,55 @@ pre[class*="language-"] {
   <style>.markdown-body{}pre.front-matter{display:none!important;}</style>
 </head>
 <body>
-  <article class="markdown-body"><h1 class="atx" id="controlador-de-dominio-primario-secundario-e-arquivos-no-debian-linux-12">Controlador de Domínio Primário, Secundário e arquivos no Debian Linux 12</h1>
+  <article class="markdown-body"><h1 class="atx" id="construindo-um-controlador-de-dominio-primario-com-samb4-no-debian-linux-12">Construindo um Controlador de Domínio Primário com Samb4 no Debian Linux 12</h1>
+<h1 class="atx" id=""></h1>
 <h4 class="atx" id="layout-de-rede-usado-no-laboratorio">Layout de rede usado no laboratório:</h4>
-<pre><code class="fenced-code-block language-bash">firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
-pdc01           <span class="token number">192.168</span>.70.253   <span class="token punctuation">(</span>ssh <span class="token number">22253</span><span class="token punctuation">)</span>
-pdc02           <span class="token number">192.168</span>.70.252   <span class="token punctuation">(</span>ssh <span class="token number">22252</span><span class="token punctuation">)</span>
-intranet        <span class="token number">192.168</span>.70.251   <span class="token punctuation">(</span>ssh <span class="token number">22251</span><span class="token punctuation">)</span>
-arquivos        <span class="token number">192.168</span>.70.250   <span class="token punctuation">(</span>ssh <span class="token number">22250</span><span class="token punctuation">)</span>
+<pre><code class="fenced-code-block language-bash">firewall           <span class="token number">192.168</span>.70.254 - <span class="token number">192.168</span>.122.254
+dc01               <span class="token number">192.168</span>.70.250   <span class="token punctuation">(</span>ssh <span class="token number">22250</span><span class="token punctuation">)</span>
+dc02               <span class="token number">192.168</span>.70.200   <span class="token punctuation">(</span>ssh <span class="token number">22200</span><span class="token punctuation">)</span>
+fileserver         <span class="token number">192.168</span>.70.150   <span class="token punctuation">(</span>ssh <span class="token number">22100</span><span class="token punctuation">)</span>
 
-<span class="token punctuation">;</span> firewall      Servidor Firewall OPNSense
-<span class="token punctuation">;</span> pdc01         Controlador de Domínio primário
-<span class="token punctuation">;</span> pdc02         Controlador de Domínio secundário
-<span class="token punctuation">;</span> intranet      Servidor de Intranet
-<span class="token punctuation">;</span> arquivos      Servidor de Arquivos</code></pre>
+firewall           Roteamento por Iptables
+dc01               Controlador de Domínio primário
+dc02               Controlador de Domínio secundário
+fileserver         Servidor de Arquivos</code></pre>
 <h4 class="atx" id="instalando-as-dependencias-para-compilacao-do-codigo-fonte--do-samba4">Instalando as dependências para compilação do código fonte  do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">DEBIAN_FRONTEND</span><span class="token operator">=</span>noninteractive<span class="token punctuation">;</span><span class="token function">apt-get</span> update<span class="token punctuation">;</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token function">vim</span> net-tools <span class="token function">rsync</span> acl apt-utils attr autoconf bind9-utils binutils bison build-essential <span class="token function">rsync</span> ccache chrpath <span class="token function">curl</span> debhelper bind9-dnsutils docbook-xml docbook-xsl flex gcc gdb <span class="token function">git</span> glusterfs-common <span class="token function">gzip</span> heimdal-multidev <span class="token function">hostname</span> <span class="token function">htop</span> krb5-config krb5-user lcov libacl1-dev libarchive-dev libattr1-dev libavahi-common-dev libblkid-dev libbsd-dev libcap-dev libcephfs-dev libcups2-dev libdbus-1-dev libglib2.0-dev libgnutls28-dev libgpgme-dev libicu-dev libjansson-dev libjs-jquery libjson-perl libkrb5-dev libldap2-dev liblmdb-dev libncurses-dev libpam0g-dev libparse-yapp-perl libpcap-dev libpopt-dev libreadline-dev libsystemd-dev libtasn1-bin libtasn1-6-dev libunwind-dev lmdb-utils locales lsb-release <span class="token function">make</span> mawk mingw-w64 patch perl perl-modules-5.40 pkg-config procps psmisc python3 python3-cryptography python3-dbg python3-dev python3-dnspython python3-gpg python3-iso8601 python3-markdown python3-matplotlib python3-pexpect python3-pyasn1 <span class="token function">rsync</span> <span class="token function">sed</span> <span class="token function">tar</span> tree uuid-dev <span class="token function">wget</span> xfslibs-dev xsltproc zlib1g-dev -y</code></pre>
-<h4 class="atx" id="setando-e-validando-o-hostname-do-pdc01">Setando e validando o hostname do pdc01:</h4>
-<pre><code class="fenced-code-block language-bash">hostnamectl set-hostname pdc01</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">DEBIAN_FRONTEND</span><span class="token operator">=</span>noninteractive<span class="token punctuation">;</span><span class="token function">apt-get</span> update<span class="token punctuation">;</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token function">vim</span> ntp net-tools <span class="token function">rsync</span> acl apt-utils attr autoconf bind9utils binutils bison build-essential ccache chrpath <span class="token function">curl</span> debhelper dnsutils docbook-xml docbook-xsl flex gcc gdb <span class="token function">git</span> glusterfs-common <span class="token function">gzip</span> heimdal-multidev <span class="token function">hostname</span> <span class="token function">htop</span> krb5-config krb5-user lcov libacl1-dev libarchive-dev libattr1-dev libavahi-common-dev libblkid-dev libbsd-dev libcap-dev libcephfs-dev libcups2-dev libdbus-1-dev libglib2.0-dev libgnutls28-dev libgpgme11-dev libicu-dev libjansson-dev libjs-jquery libjson-perl libkrb5-dev libldap2-dev liblmdb-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpcap-dev libpopt-dev libreadline-dev libsystemd-dev libtasn1-bin libtasn1-dev libunwind-dev lmdb-utils locales lsb-release <span class="token function">make</span> mawk mingw-w64 patch perl perl-modules pkg-config procps psmisc python3 python3-cryptography python3-dbg python3-dev python3-dnspython python3-gpg python3-iso8601 python3-markdown python3-matplotlib python3-pexpect python3-pyasn1 <span class="token function">rsync</span> <span class="token function">sed</span>  <span class="token function">tar</span> tree uuid-dev <span class="token function">wget</span> xfslibs-dev xsltproc zlib1g-dev -y</code></pre>
+<h4 class="atx" id="setando-e-validando-o-hostname-do-dc01">Setando e validando o hostname do dc01:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hostname</code></pre>
+<pre><code class="fenced-code-block language-bash">dc01</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">hostname</span> -f</code></pre>
 <h4 class="atx" id="configurando-o-arquivo-de-hosts">Configurando o arquivo de hosts:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hosts</code></pre>
 <pre><code class="fenced-code-block language-bash">.0.0.1             localhost
-<span class="token number">127.0</span>.1.1          pdc01.officinas.edu    pdc01
-<span class="token number">192.168</span>.70.253     pdc01.officinas.edu    pdc01</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">hostname</span> -f</code></pre>
-<h4 class="atx" id="setando-ip-fixo-no-servidor-pdc01">Setando ip fixo no servidor pdc01:</h4>
+<span class="token number">127.0</span>.1.1          dc01.esharknet.edu       dc01
+<span class="token number">192.168</span>.70.150     fileserver.esharknet.edu fileserver
+<span class="token number">192.168</span>.70.200     dc02.esharknet.edu       dc02
+<span class="token number">192.168</span>.70.250     dc01.esharknet.edu       dc01
+<span class="token number">192.168</span>.70.254     firewall.esharknet.edu   firewall</code></pre>
+<h4 class="atx" id="setando-ip-fixo-no-servidor-dc01">Setando ip fixo no servidor dc01:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/network/interfaces</code></pre>
 <pre><code class="fenced-code-block language-bash">iface enp1s0 inet static
-address           <span class="token number">192.168</span>.70.253
+address           <span class="token number">192.168</span>.70.250
 netmask           <span class="token number">255.255</span>.255.0
-gateway           <span class="token number">192.168</span>.70.254</code></pre>
+gateway           <span class="token number">192.168</span>.70.254
+dns-nameserver    <span class="token number">192.168</span>.70.254 <span class="token comment">#(firewall)</span>
+dns-search        esharknet.edu</code></pre>
 <h4 class="atx" id="setando-endereco-do-firewall-como-resolvedor-externo-temporario-ate-provisionar-o-dominio">Setando endereço do firewall como resolvedor externo (temporário até provisionar o domínio):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/resolv.conf</code></pre>
-<pre><code class="fenced-code-block language-bash">domain             officinas.edu
-search             officinas.edu.
-nameserver         <span class="token number">192.168</span>.70.254</code></pre>
+<pre><code class="fenced-code-block language-bash">domain             esharknet.edu
+search             esharknet.edu.
+nameserver         <span class="token number">192.168</span>.70.254 <span class="token comment">#(firewall)</span></code></pre>
 <h4 class="atx" id="validando-o-ip-da-placa">Validando o ip da placa:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -c addr</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -br <span class="token function">link</span></code></pre>
 <h4 class="atx" id="baixando-e-compilando-o-codigo-fonte-do-samba4">Baixando e compilando o código fonte do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.3</code></pre>
-<pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba <span class="token punctuation">\</span>
-  --with-winbind <span class="token punctuation">\</span>
-  --with-shared-modules<span class="token operator">=</span>idmap_rid,idmap_ad <span class="token punctuation">\</span></code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">make</span> -j<span class="token variable"><span class="token variable">$(</span>nproc<span class="token variable">)</span></span></code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.18.6.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.18.6.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.18.6</code></pre>
+<pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">make</span></code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">make</span> <span class="token function">install</span></code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">make</span> clean</code></pre>
-<h4 class="atx" id="validar-se-o-winbind-e-nss-foram-compilados">Validar se o winbind e NSS foram compilados</h4>
-<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd -b <span class="token operator">|</span> <span class="token function">grep</span> WINBIND</code></pre>
-<pre><code class="fenced-code-block language-bash">WITH_WINBIND</code></pre>
-<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd -b <span class="token operator">|</span> <span class="token function">grep</span> LIBDIR</code></pre>
-<pre><code class="fenced-code-block language-bash">LIBDIR: /opt/samba/lib</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">find</span> /opt/samba -name <span class="token string">"libnss_winbind.so*"</span></code></pre>
-<pre><code class="fenced-code-block language-bash">/opt/samba/lib/libnss_winbind.so.2</code></pre>
-<h2 class="atx" id="linkar-as-bibliotecas-compiladas-do-winbind-e-nss-ao-path-do-sistema-operacional-rode-esses-comandos-manualmente-sem-copiar-e-colar">Linkar as bibliotecas compiladas do Winbind e NSS ao path do Sistema Operacional (rode esses comandos manualmente sem copiar e colar):</h2>
-<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /opt/samba/lib/libnss_winbind.so.2 /lib/x86_64-linux-gnu</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /lib/x86_64-linux-gnu/libnss_winbind.so.2 /lib/x86_64-linux-gnu/libnss_winbind.so</code></pre>
-<pre><code class="fenced-code-block language-bash">ldconfig</code></pre>
 <h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
 <h4 class="atx" id="pathandquotusrlocalsbinusrlocalbinusrsbinusrbinsbinbinoptsambabinoptsambasbinandquot">PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> ~/.bashrc</code></pre>
@@ -1315,43 +1306,33 @@ nameserver         <span class="token number">192.168</span>.70.254</code></pre>
 <h4 class="atx" id="criando-o-daemon-de-inicializacao-do-samba4-com-o-sistema">Criando o daemon de inicialização do Samba4 com o sistema:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/systemd/system/samba-ad-dc.service</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
-<span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba <span class="token number">4</span> Active Directory Domain Controller
-<span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
-<span class="token assign-left variable">Wants</span><span class="token operator">=</span>network-online.target
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba4 Active Directory Master Domain Controller
+   <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
 
 <span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
-<span class="token assign-left variable">Type</span><span class="token operator">=</span>simple
-<span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/samba --foreground --no-process-group
-<span class="token assign-left variable">Restart</span><span class="token operator">=</span>always
-<span class="token assign-left variable">LimitNOFILE</span><span class="token operator">=</span><span class="token number">16384</span>
+   <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
+   <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/samba -D
+   <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/samba.pid
 
 <span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
-<span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
+   <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x /etc/systemd/system/samba-ad-dc.service</code></pre>
-<h4 class="atx" id="editando-o-nssswitch">Editando o nssswitch:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/nsswitch.conf</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token comment"># /etc/nsswitch.conf</span>
-<span class="token comment">#</span>
-<span class="token comment"># Example configuration of GNU Name Service Switch functionality.</span>
-<span class="token comment"># If you have the `glibc-doc-reference' and `info' packages installed, try:</span>
-<span class="token comment"># `info libc "Name Service Switch"' for information about this file.</span>
-
-passwd:         files systemd winbind
-group:          files systemd winbind
-shadow:         files systemd
-gshadow:        files systemd
-
-hosts:          files dns
-networks:       files
-
-protocols:      db files
-services:       db files
-ethers:         db files
-rpc:            db files
-
-netgroup:       nis</code></pre>
-<h4 class="atx" id="provisionando-o-novo-dominio-suportado-pelo-pdc01">Provisionando o novo domínio suportado pelo pdc01:</h4>
-<pre><code class="fenced-code-block language-bash">samba-tool domain provision --use-rfc2307 --interactive --option<span class="token operator">=</span>”interfaces<span class="token operator">=</span>lo ens18” --option<span class="token operator">=</span>”bind interfaces <span class="token assign-left variable">only</span><span class="token operator">=</span>yes”</code></pre>
+<h4 class="atx" id="instalando-e-editando-o-servico-de-sincronizacao-de-horario">Instalando e editando o serviço de sincronização de horário:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">cp</span> /etc/ntpsec/ntp.conf<span class="token punctuation">{</span>,.orig<span class="token punctuation">}</span></code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/ntpsec/ntp.conf</code></pre>
+<pre><code class="fenced-code-block language-bash">driftfile /var/lib/ntpsec/ntp.drift
+leapfile /usr/share/zoneinfo/leap-seconds.list
+pool a.ntp.org iburst
+pool b.ntp.org iburst
+pool <span class="token number">2</span>.debian.pool.ntp.org iburst
+pool <span class="token number">3</span>.debian.pool.ntp.org iburst
+restrict <span class="token number">127.0</span>.0.1
+restrict ::1
+tinker panic <span class="token number">0</span> <span class="token comment">#(Flag usada SOMENTE em VMs)</span></code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl restart ntpd</code></pre>
+<pre><code class="fenced-code-block language-bash">ntpq -p</code></pre>
+<h4 class="atx" id="provisionando-o-novo-dominio-suportado-pelo-dc01">Provisionando o novo domínio suportado pelo dc01:</h4>
+<pre><code class="fenced-code-block language-bash">samba-tool domain provision --use-rfc2307 --interactive --option<span class="token operator">=</span>”interfaces<span class="token operator">=</span>lo enp1s0” --option<span class="token operator">=</span>”bind interfaces <span class="token assign-left variable">only</span><span class="token operator">=</span>yes”</code></pre>
 <h4 class="atx" id="habilitando-o-daemon-pra-subir-no-boot-do-sistema">Habilitando o daemon pra subir no boot do sistema:</h4>
 <pre><code class="fenced-code-block language-bash">systemctl daemon-reload</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl <span class="token builtin class-name">enable</span> samba-ad-dc.service</code></pre>
@@ -1360,22 +1341,22 @@ netgroup:       nis</code></pre>
 <h4 class="atx" id="linkando-o-arquivo-krb5conf-do-samba4-ao-etc-do-sistema">Linkando o arquivo krb5.conf do Samba4 ao /etc do sistema:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">mv</span> /etc/krb5.conf<span class="token punctuation">{</span>,.orig<span class="token punctuation">}</span></code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -sf /opt/samba/private/krb5.conf /etc/krb5.conf</code></pre>
-<h4 class="atx" id="apos-o-provisionamento-da-samba4-precisamos-reconfigurar-o-etcresolvconf-e-setar-o-dns-apontando-a-resolucao-de-nomes-para-o-proprio-pdc01">APÓS o provisionamento da Samba4, precisamos reconfigurar o /etc/resolv.conf e setar o DNS apontando a resolução de nomes para o próprio pdc01:</h4>
+<h4 class="atx" id="apos-o-provisionamento-da-samba4-precisamos-reconfigurar-o-etcresolvconf-e-setar-o-dns-apontando-a-resolucao-de-nomes-para-o-proprio-dc01">APÓS o provisionamento da Samba4, precisamos reconfigurar o /etc/resolv.conf e setar o DNS apontando a resolução de nomes para o próprio dc01:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/resolv.conf</code></pre>
-<pre><code class="fenced-code-block language-bash">domain           officinas.edu
-search           officinas.edu.
-nameserver       <span class="token number">127.0</span>.0.1</code></pre>
+<pre><code class="fenced-code-block language-bash">domain           esharknet.edu
+search           esharknet.edu.
+nameserver       <span class="token number">127.0</span>.0.1 <span class="token comment">#(localhost)</span></code></pre>
 <h4 class="atx" id="bloqueando-alteracao-do-resolvconf">Bloqueando alteração do resolv.conf:</h4>
 <pre><code class="fenced-code-block language-bash">chattr +i /etc/resolv.conf</code></pre>
-<h4 class="atx" id="validando-resolvedor-de-nomes-pelo-pdc01">Validando resolvedor de nomes pelo pdc01:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">nslookup</span> pdc01.officinas.edu</code></pre>
+<h4 class="atx" id="validando-resolvedor-de-nomes-pelo-dc01">Validando resolvedor de nomes pelo dc01:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">nslookup</span> dc01.esharknet.edu</code></pre>
 <h3 class="atx" id="vai-validar-na-tela">Vai validar na tela:</h3>
 <pre><code class="fenced-code-block language-bash">Server:         <span class="token number">127.0</span>.0.1
 Address:        <span class="token number">127.0</span>.0.1<span class="token comment">#53</span>
 
-Name:   pdc01.officinas.edu
-Address: <span class="token number">192.168</span>.70.253</code></pre>
-<h4 class="atx" id="reboot-do-servidor-pdc01">Reboot do servidor pdc01:</h4>
+Name:   dc01.esharknet.edu
+Address: <span class="token number">192.168</span>.70.250</code></pre>
+<h4 class="atx" id="reboot-do-servidor-dc01">Reboot do servidor dc01:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">reboot</span></code></pre>
 <h4 class="atx" id="validando-os-servicos-do-samba4-no-boot-do-sistema">Validando os serviços do Samba4 no boot do sistema:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ps</span> aux <span class="token operator">|</span> <span class="token function">grep</span> samba</code></pre>
@@ -1384,18 +1365,28 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
 <pre><code class="fenced-code-block language-bash">pgrep samba</code></pre>
 <h4 class="atx" id="dando-poderes-de-root-ao-administrator">Dando poderes de root ao Administrator:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /opt/samba/etc/user.map</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token operator">!</span>root<span class="token operator">=</span>officinas.edu<span class="token punctuation">\</span>Administrator</code></pre>
-<h4 class="atx" id="editando-o-arquivo-smbconf-e-adicionando-no-dns-forwarder-quem-resolve-nomes-para-consultas-externas-o-firewall">Editando o arquivo smb.conf e adicionando no dns forwarder, quem resolve nomes para consultas externas (o Firewall):</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token operator">!</span>root<span class="token operator">=</span>esharknet.edu<span class="token punctuation">\</span>Administrator</code></pre>
+<h4 class="atx" id="linkando-bibliotecas-do-samba4-para-mapeamento-de-usuarios-no-sistema-linux-rode-esses-comandos-manualmente-sem-copiar-e-colar">Linkando bibliotecas do Samba4 para mapeamento de usuários no sistema Linux (rode esses comandos manualmente sem copiar e colar):</h4>
+<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd -b <span class="token operator">|</span> <span class="token function">grep</span> LIBDIR</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /opt/samba/lib/libnss_winbind.so.2 /lib/x86-64-linux-gnu/</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /lib/x86_64-linux-gnu/libnss_winbind.so.2 /lib/x86_64-linux-gnu/libnss_winbind.so</code></pre>
+<pre><code class="fenced-code-block language-bash">ldconfig</code></pre>
+<h4 class="atx" id="validando-a-autenticacao-de-usuarios-de-rede-no-sistema-linux-mas-tbem-no-winbind">Validando a autenticação de usuários de rede no sistema Linux mas tbém no winbind:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/nsswitch.conf</code></pre>
+<pre><code class="fenced-code-block language-bash">passwd: files systemd winbind
+group: files systemd winbind
+shadow: files</code></pre>
+<h4 class="atx" id="editando-o-arquivo-smbconf-e-adicionando-no-dns-forwarder-quem-resolve-nomes-para-consultas-externas-o-firewall-e-o-google">Editando o arquivo smb.conf e adicionando no dns forwarder, quem resolve nomes para consultas externas (o firewall e o google):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">cp</span> /opt/samba/etc/smb.conf<span class="token punctuation">{</span>,.orig<span class="token punctuation">}</span></code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /opt/samba/etc/smb.conf</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>global<span class="token punctuation">]</span>
       <span class="token builtin class-name">bind</span> interfaces only <span class="token operator">=</span> Yes
-      dns forwarder <span class="token operator">=</span> <span class="token number">192.168</span>.70.254
-      interfaces <span class="token operator">=</span> lo ens18
-      netbios name <span class="token operator">=</span> pdc01
-      realm <span class="token operator">=</span> OFFICINAS.EDU
+      dns forwarder <span class="token operator">=</span> <span class="token number">192.168</span>.70.254 <span class="token number">8.8</span>.8.8 <span class="token comment">#(firewall + google)</span>
+      interfaces <span class="token operator">=</span> lo enp1s0
+      netbios name <span class="token operator">=</span> DC01
+      realm <span class="token operator">=</span> ESHARKNET.EDU
       server role <span class="token operator">=</span> active directory domain controller
-      workgroup <span class="token operator">=</span> OFFICINAS
+      workgroup <span class="token operator">=</span> ESHARKNET
       idmap_ldb:use rfc2307 <span class="token operator">=</span> <span class="token function">yes</span>
 
 <span class="token punctuation">[</span>sysvol<span class="token punctuation">]</span>
@@ -1403,7 +1394,7 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
       <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No
 
 <span class="token punctuation">[</span>netlogon<span class="token punctuation">]</span>
-      path <span class="token operator">=</span> /opt/samba/var/locks/sysvol/officinas.edu/scripts
+      path <span class="token operator">=</span> /opt/samba/var/locks/sysvol/esharknet.edu/scripts
       <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No</code></pre>
 <h4 class="atx" id="relendo-a-configuracao-do-samba4">Relendo a configuração do Samba4:</h4>
 <pre><code class="fenced-code-block language-bash">smbcontrol all reload-config</code></pre>
@@ -1421,63 +1412,9 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ps</span> axf</code></pre>
 <h4 class="atx" id="consultando-servicos-do-samba4">Consultando serviços do SAMBA4:</h4>
 <pre><code class="fenced-code-block language-bash">smbclient --version</code></pre>
-<pre><code class="fenced-code-block language-bash">smbclient -L pdc01 -U Administrator</code></pre>
-<pre><code class="fenced-code-block">Password for [OFFICINAS\Administrator]:
-
-    Sharename       Type      Comment
-    ---------       ----      -------
-    sysvol          Disk      
-    netlogon        Disk      
-    IPC$            IPC       IPC Service (Samba 4.22.3)
-SMB1 disabled -- no workgroup available</code></pre>
+<pre><code class="fenced-code-block language-bash">smbclient -L localhost -U%</code></pre>
 <pre><code class="fenced-code-block language-bash">smbclient //localhost/netlogon -UAdministrator -c <span class="token string">"ls"</span></code></pre>
-<pre><code class="fenced-code-block">Password for [OFFICINAS\Administrator]:
-  .                                   D        0  Tue Jul 15 22:23:29 2025
-  ..                                  D        0  Tue Jul 15 22:23:29 2025
-
-        19353424 blocks of size 1024. 12404868 blocks available</code></pre>
 <pre><code class="fenced-code-block language-bash">testparm</code></pre>
-<pre><code class="fenced-code-block language-bash">Load smb config files from /opt/samba/etc/smb.conf
-Loaded services <span class="token function">file</span> OK.
-Weak crypto is allowed by GnuTLS <span class="token punctuation">(</span>e.g. NTLM as a compatibility fallback<span class="token punctuation">)</span>
-
-Server role: ROLE_ACTIVE_DIRECTORY_DC
-
-Press enter to see a dump of your <span class="token function">service</span> definitions
-
-<span class="token comment"># Global parameters</span>
-<span class="token punctuation">[</span>global<span class="token punctuation">]</span>
-    <span class="token builtin class-name">bind</span> interfaces only <span class="token operator">=</span> Yes
-    dns forwarder <span class="token operator">=</span> <span class="token number">192.168</span>.70.253 <span class="token number">192.168</span>.70.254
-    interfaces <span class="token operator">=</span> lo ens18
-    passdb backend <span class="token operator">=</span> samba_dsdb
-    realm <span class="token operator">=</span> OFFICINAS.EDU
-    server role <span class="token operator">=</span> active directory domain controller
-    workgroup <span class="token operator">=</span> OFFICINAS
-    rpc_server:tcpip <span class="token operator">=</span> no
-    rpc_daemon:spoolssd <span class="token operator">=</span> embedded
-    rpc_server:spoolss <span class="token operator">=</span> embedded
-    rpc_server:winreg <span class="token operator">=</span> embedded
-    rpc_server:ntsvcs <span class="token operator">=</span> embedded
-    rpc_server:eventlog <span class="token operator">=</span> embedded
-    rpc_server:srvsvc <span class="token operator">=</span> embedded
-    rpc_server:svcctl <span class="token operator">=</span> embedded
-    rpc_server:default <span class="token operator">=</span> external
-    winbindd:use external pipes <span class="token operator">=</span> <span class="token boolean">true</span>
-    idmap_ldb:use-rfc2307 <span class="token operator">=</span> <span class="token function">yes</span>
-    idmap config * <span class="token builtin class-name">:</span> backend <span class="token operator">=</span> tdb
-    map archive <span class="token operator">=</span> No
-    vfs objects <span class="token operator">=</span> dfs_samba4 acl_xattr
-
-
-<span class="token punctuation">[</span>sysvol<span class="token punctuation">]</span>
-    path <span class="token operator">=</span> /opt/samba/var/locks/sysvol
-    <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No
-
-
-<span class="token punctuation">[</span>netlogon<span class="token punctuation">]</span>
-    path <span class="token operator">=</span> /opt/samba/var/locks/sysvol/officinas.edu/scripts
-    <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No</code></pre>
 <pre><code class="fenced-code-block language-bash">samba-tool domain level show</code></pre>
 <h4 class="atx" id="desabilitando-complexidade-de-senhas-inseguro">Desabilitando complexidade de senhas (inseguro):</h4>
 <pre><code class="fenced-code-block language-bash">samba-tool domain passwordsettings show</code></pre>
@@ -1489,103 +1426,73 @@ Press enter to see a dump of your <span class="token function">service</span> de
 <h4 class="atx" id="relendo-as-configuracoes-do-samba4">Relendo as configurações do SAMBA4:</h4>
 <pre><code class="fenced-code-block language-bash">smbcontrol all reload-config</code></pre>
 <h4 class="atx" id="validando-a-troca-de-tickets-do-kerberos">Validando a troca de tickets do Kerberos:</h4>
-<pre><code class="fenced-code-block language-bash"> kinit Administrator@OFFICINAS.EDU</code></pre>
+<pre><code class="fenced-code-block language-bash"> kinit Administrator@ESHARKNET.EDU</code></pre>
 <pre><code class="fenced-code-block language-bash">klist </code></pre>
-<pre><code class="fenced-code-block">Ticket cache: FILE:/tmp/krb5cc_0
-Default principal: Administrator@OFFICINAS.EDU
-
-Valid starting       Expires              Service principal
-15/07/2025 22:35:50  16/07/2025 08:35:50  krbtgt/OFFICINAS.EDU@OFFICINAS.EDU
-    renew until 16/07/2025 22:35:46</code></pre>
 <h4 class="atx" id="consultando-as-bases-do-kerberos-ldap-e-dns">Consultando as bases do kerberos, ldap e dns:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t srv _kerberos._tcp.officinas.edu</code></pre>
-<pre><code class="fenced-code-block">_kerberos._tcp.officinas.edu has SRV record 0 100 88 pdc01.officinas.edu.</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t srv _ldap._tcp.officinas.edu</code></pre>
-<pre><code class="fenced-code-block">_ldap._tcp.officinas.edu has SRV record 0 100 389 pdc01.officinas.edu.</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t A pdc01.officinas.edu.</code></pre>
-<pre><code class="fenced-code-block">pdc01.officinas.edu has address 192.168.70.253</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">dig</span> officinas.edu</code></pre>
-<pre><code class="fenced-code-block">; &lt;&lt;&gt;&gt; DiG 9.20.9-1-Debian &lt;&lt;&gt;&gt; officinas.edu
-;; global options: +cmd
-;; Got answer:
-;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 39283
-;; flags: qr aa rd ra ad; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 0
-
-;; QUESTION SECTION:
-;officinas.edu.            IN    A
-
-;; ANSWER SECTION:
-officinas.edu.        900    IN    A    192.168.70.253
-
-;; AUTHORITY SECTION:
-officinas.edu.        3600    IN    SOA    pdc01.officinas.edu. hostmaster.officinas.edu. 19 900 600 86400 3600
-
-;; Query time: 0 msec
-;; SERVER: 192.168.70.253#53(192.168.70.253) (UDP)
-;; WHEN: Tue Jul 15 22:36:46 -03 2025
-;; MSG SIZE  rcvd: 100</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t srv _kerberos._tcp.esharknet.edu</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t srv _ldap._tcp.esharknet.edu</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t A dc01.esharknet.edu.</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">dig</span> esharknet.edu</code></pre>
+<p><a href="mailto:zerolies@disroot.org">zerolies@disroot.org</a></p>
 <p>THAT’S ALL FOLKS!!</p>
-<h1 class="atx" id="controlador-de-dominio-secundario-com-samba4-no-debian-12">Controlador de Domínio secundário com Samba4 no Debian 12</h1>
+<h1 class="atx" id="-1"></h1>
+<h1 class="atx" id="construindo-um-controlador-de-dominio-secundario-com-samba4-no-debian-linux-12">Construindo um Controlador de Domínio secundário com Samba4 no Debian Linux 12</h1>
 <h4 class="atx" id="layout-de-rede-usado-no-laboratorio-1">Layout de rede usado no laboratório:</h4>
-<pre><code class="fenced-code-block language-bash">firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
-pdc01           <span class="token number">192.168</span>.70.253   <span class="token punctuation">(</span>ssh <span class="token number">22253</span><span class="token punctuation">)</span>
-pdc02           <span class="token number">192.168</span>.70.252   <span class="token punctuation">(</span>ssh <span class="token number">22252</span><span class="token punctuation">)</span>
-intranet        <span class="token number">192.168</span>.70.251   <span class="token punctuation">(</span>ssh <span class="token number">22251</span><span class="token punctuation">)</span>
-arquivos        <span class="token number">192.168</span>.70.250   <span class="token punctuation">(</span>ssh <span class="token number">22250</span><span class="token punctuation">)</span>
+<pre><code class="fenced-code-block language-bash">firewall           <span class="token number">192.168</span>.70.254 - <span class="token number">192.168</span>.122.254
+dc01               <span class="token number">192.168</span>.70.250   <span class="token punctuation">(</span>ssh <span class="token number">22250</span><span class="token punctuation">)</span>
+dc02               <span class="token number">192.168</span>.70.200   <span class="token punctuation">(</span>ssh <span class="token number">22200</span><span class="token punctuation">)</span>
+fileserver         <span class="token number">192.168</span>.70.150   <span class="token punctuation">(</span>ssh <span class="token number">22150</span><span class="token punctuation">)</span>
 
-<span class="token punctuation">;</span> firewall      Servidor Firewall OPNSense
-<span class="token punctuation">;</span> pdc01         Controlador de Domínio primário
-<span class="token punctuation">;</span> pdc02         Controlador de Domínio secundário
-<span class="token punctuation">;</span> intranet      Servidor de Intranet
-<span class="token punctuation">;</span> arquivos      Servidor de Arquivos</code></pre>
-<h4 class="atx" id="instalando-as-dependencias-para-compilacao-do-codigo-fonte--do-samba4-1">Instalando as dependências para compilação do código fonte  do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">DEBIAN_FRONTEND</span><span class="token operator">=</span>noninteractive<span class="token punctuation">;</span><span class="token function">apt-get</span> update<span class="token punctuation">;</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token function">vim</span> net-tools <span class="token function">rsync</span> acl apt-utils attr autoconf bind9-utils binutils bison build-essential <span class="token function">rsync</span> ccache chrpath <span class="token function">curl</span> debhelper bind9-dnsutils docbook-xml docbook-xsl flex gcc gdb <span class="token function">git</span> glusterfs-common <span class="token function">gzip</span> heimdal-multidev <span class="token function">hostname</span> <span class="token function">htop</span> krb5-config krb5-user lcov libacl1-dev libarchive-dev libattr1-dev libavahi-common-dev libblkid-dev libbsd-dev libcap-dev libcephfs-dev libcups2-dev libdbus-1-dev libglib2.0-dev libgnutls28-dev libgpgme-dev libicu-dev libjansson-dev libjs-jquery libjson-perl libkrb5-dev libldap2-dev liblmdb-dev libncurses-dev libpam0g-dev libparse-yapp-perl libpcap-dev libpopt-dev libreadline-dev libsystemd-dev libtasn1-bin libtasn1-6-dev libunwind-dev lmdb-utils locales lsb-release <span class="token function">make</span> mawk mingw-w64 patch perl perl-modules-5.40 pkg-config procps psmisc python3 python3-cryptography python3-dbg python3-dev python3-dnspython python3-gpg python3-iso8601 python3-markdown python3-matplotlib python3-pexpect python3-pyasn1 <span class="token function">rsync</span> <span class="token function">sed</span> <span class="token function">tar</span> tree uuid-dev <span class="token function">wget</span> xfslibs-dev xsltproc zlib1g-dev -y
-<span class="token comment">#### Setando e validando o hostname do pdc02:</span>
-
-```bash
-<span class="token function">vim</span> /etc/hostname</code></pre>
-<pre><code class="fenced-code-block language-bash">pdc02</code></pre>
+firewall           Roteamento por Iptables
+dc01               Controlador de Domínio primário
+dc02               Controlador de Domínio secundário
+fileserver         Servidor de Arquivos</code></pre>
+<h4 class="atx" id="instalando-as-dependencias-para-compilacao-do-codigo-fonte-do-samba4">Instalando as dependências para compilação do código fonte do Samba4:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">DEBIAN_FRONTEND</span><span class="token operator">=</span>noninteractive<span class="token punctuation">;</span><span class="token function">apt-get</span> update<span class="token punctuation">;</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token function">vim</span> ntp net-tools <span class="token function">rsync</span> acl apt-utils attr autoconf bind9utils binutils bison build-essential ntp <span class="token function">rsync</span> ccache chrpath <span class="token function">curl</span> debhelper dnsutils docbook-xml docbook-xsl flex gcc gdb <span class="token function">git</span> glusterfs-common <span class="token function">gzip</span> heimdal-multidev <span class="token function">hostname</span> <span class="token function">htop</span> krb5-config krb5-user lcov libacl1-dev libarchive-dev libattr1-dev libavahi-common-dev libblkid-dev libbsd-dev libcap-dev libcephfs-dev libcups2-dev libdbus-1-dev libglib2.0-dev libgnutls28-dev libgpgme11-dev libicu-dev libjansson-dev libjs-jquery libjson-perl libkrb5-dev libldap2-dev liblmdb-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpcap-dev libpopt-dev libreadline-dev libsystemd-dev libtasn1-bin libtasn1-dev libunwind-dev lmdb-utils locales lsb-release <span class="token function">make</span> mawk mingw-w64 patch perl perl-modules pkg-config procps psmisc python3 python3-cryptography python3-dbg python3-dev python3-dnspython python3-gpg python3-iso8601 python3-markdown python3-matplotlib python3-pexpect python3-pyasn1 <span class="token function">rsync</span> <span class="token function">sed</span>  <span class="token function">tar</span> tree uuid-dev <span class="token function">wget</span> xfslibs-dev xsltproc zlib1g-dev -y</code></pre>
+<h4 class="atx" id="setando-e-validando-o-hostname-do-dc02">Setando e validando o hostname do dc02:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hostname</code></pre>
+<pre><code class="fenced-code-block language-bash">dc02</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">hostname</span> -f</code></pre>
-<pre><code class="fenced-code-block language-bash">pdc02.officinas.edu</code></pre>
+<pre><code class="fenced-code-block language-bash">dc02.esharknet.edu</code></pre>
 <h4 class="atx" id="configurando-o-arquivo-de-hosts-1">Configurando o arquivo de hosts:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hosts</code></pre>
 <pre><code class="fenced-code-block language-bash">.0.0.1              localhost
-<span class="token number">127.0</span>.1.1           pdc02.officinas.edu       pdc02
-<span class="token number">192.168</span>.70.252      pdc02.officinas.edu       pdc02
-<span class="token number">192.168</span>.70.253      pdc01.officinas.edu       pdc01</code></pre>
-<h4 class="atx" id="setando-ip-fixo-no-servidor-pdc02">Setando ip fixo no servidor pdc02:</h4>
+<span class="token number">127.0</span>.1.1           dc02.esharknet.edu       dc02
+<span class="token number">192.168</span>.70.150      fileserver.esharknet.edu fileserver
+<span class="token number">192.168</span>.70.200      dc02.esharknet.edu       dc02
+<span class="token number">192.168</span>.70.250      dc01.esharknet.edu       dc01
+<span class="token number">192.168</span>.70.254      firewall.esharknet.edu   firewall</code></pre>
+<h4 class="atx" id="setando-ip-fixo-no-servidor-dc02">Setando ip fixo no servidor dc02:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/network/interfaces</code></pre>
 <pre><code class="fenced-code-block language-bash">allow-hotplug enp1s0
 iface enp1s0 inet static
-address           <span class="token number">192.168</span>.70.252
+address           <span class="token number">192.168</span>.70.200
 netmask           <span class="token number">255.255</span>.255.0
-gateway           <span class="token number">192.168</span>.70.254
-dns-nameservers   <span class="token number">192.168</span>.70.253
-dns-search        officinas.edu</code></pre>
-<h4 class="atx" id="apontando-o-endereco-do-resolvedor-de-nomes-principal-da-rede-pro-controlador-de-dominio-primario-pdc01-temporario-ate-provisionar">Apontando o endereço do resolvedor de nomes principal da rede pro Controlador de domínio primário, pdc01 (temporário, até provisionar):</h4>
+gateway           <span class="token number">192.168</span>.70.254</code></pre>
+<h4 class="atx" id="apontando-o-endereco-do-resolvedor-de-nomes-principal-da-rede-pro-controlador-de-dominio-primario-dc01-temporario-ate-provisionar">Apontando o endereço do resolvedor de nomes principal da rede pro Controlador de domínio primário, dc01 (temporário, até provisionar):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/resolv.conf</code></pre>
-<pre><code class="fenced-code-block language-bash">domain           officinas.edu
-search           officinas.edu.
-nameserver       <span class="token number">192.168</span>.70.253
+<pre><code class="fenced-code-block language-bash">domain           esharknet.edu
+search           esharknet.edu.
+nameserver       <span class="token number">192.168</span>.70.250 <span class="token comment">#(dc01)</span>
 nameserver       <span class="token number">127.0</span>.0.1</code></pre>
-<h4 class="atx" id="validando-a-resolucao-de-nomes-pelo-pdc01">Validando a resolução de nomes pelo pdc01:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">nslookup</span> officinas.edu</code></pre>
-<pre><code class="fenced-code-block language-bash">Server:         <span class="token number">192.168</span>.70.253
-Address:        <span class="token number">192.168</span>.70.253<span class="token comment">#53</span>
+<h4 class="atx" id="validando-a-resolucao-de-nomes-pelo-dc01">Validando a resolução de nomes pelo dc01:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">nslookup</span> esharknet.edu</code></pre>
+<pre><code class="fenced-code-block language-bash">Server:         <span class="token number">192.168</span>.70.250
+Address:        <span class="token number">192.168</span>.70.250<span class="token comment">#53</span>
 
-Name:   officinas.edu
-Address: <span class="token number">192.168</span>.70.253
-Name:   officinas.edu
-Address: <span class="token number">192.168</span>.70.252</code></pre>
+Name:   esharknet.edu
+Address: <span class="token number">192.168</span>.70.250
+Name:   esharknet.edu
+Address: <span class="token number">192.168</span>.70.200</code></pre>
 <h4 class="atx" id="relendo-as-configuracoes-de-rede">Relendo as configurações de rede:</h4>
 <pre><code class="fenced-code-block language-bash">systemctl restart networking</code></pre>
 <h4 class="atx" id="validando-o-ip-da-placa-1">Validando o ip da placa:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -c addr</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -br <span class="token function">link</span></code></pre>
 <h4 class="atx" id="baixando-e-compilando-o-codigo-fonte-do-samba4-1">Baixando e compilando o código fonte do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.3</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.18.6.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.18.6.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.18.6</code></pre>
 <pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">make</span> <span class="token operator">&amp;&amp;</span> <span class="token function">make</span> <span class="token function">install</span></code></pre>
 <h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc-1">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
@@ -1608,28 +1515,23 @@ Address: <span class="token number">192.168</span>.70.252</code></pre>
 <span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
    <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x /etc/systemd/system/samba-ad-dc.service</code></pre>
-<h4 class="atx" id="editando-o-nssswitch-1">Editando o nssswitch:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/nsswitch.conf</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token comment"># /etc/nsswitch.conf</span>
-<span class="token comment">#</span>
-<span class="token comment"># Example configuration of GNU Name Service Switch functionality.</span>
-<span class="token comment"># If you have the `glibc-doc-reference' and `info' packages installed, try:</span>
-<span class="token comment"># `info libc "Name Service Switch"' for information about this file.</span>
-
-passwd:         files systemd winbind
-group:          files systemd winbind
-shadow:         files systemd
-gshadow:        files systemd
-
-hosts:          files dns
-networks:       files
-
-protocols:      db files
-services:       db files
-ethers:         db files
-rpc:            db files
-
-netgroup:       nis</code></pre>
+<h4 class="atx" id="configurando-o-servico-de-sincronizacao-de-horario-apontando-pro-controlador-de-dominio-primario-dc01">Configurando o serviço de sincronização de horário, apontando pro Controlador de domínio primário, dc01:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mv</span> /etc/ntpsec/ntp.conf<span class="token punctuation">{</span>,.orig<span class="token punctuation">}</span></code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/ntpsec/ntp.conf</code></pre>
+<pre><code class="fenced-code-block language-bash">driftfile /var/lib/ntpsec/ntp.drift
+leapfile /usr/share/zoneinfo/leap-seconds.list
+tos minclock <span class="token number">4</span> minsane <span class="token number">3</span>
+pool <span class="token number">192.168</span>.70.250 iburst <span class="token comment">#(dc01)</span>
+restrict default kod nomodify nopeer noquery limited
+restrict <span class="token number">127.0</span>.0.1
+restrict ::1
+tinker panic <span class="token number">0</span> <span class="token comment">#(Flag usada SOMENTE em VMs)</span></code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl restart ntp</code></pre>
+<pre><code class="fenced-code-block language-bash">ntpq -p</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">date</span></code></pre>
+<p>As máquinas Windows/Linux, membros do domínio, usarão o DC1 que retém a função FSMO emulador PDC como fonte de tempo padrão!</p>
+<h4 class="atx" id="provisionando-o-servidor-dc02">Provisionando o servidor DC02:</h4>
+<pre><code class="fenced-code-block language-bash">samba-tool domain <span class="token function">join</span> ESHARKNET.EDU DC -U Administrator --realm<span class="token operator">=</span>ESHARKNET.EDU --dns-backend<span class="token operator">=</span>SAMBA_INTERNAL --option<span class="token operator">=</span><span class="token string">"interfaces=lo enp1s0"</span> --option<span class="token operator">=</span><span class="token string">"bind interfaces only=yes"</span> --option<span class="token operator">=</span><span class="token string">"idmap_ldb:use-rfc2307=yes"</span></code></pre>
 <h4 class="atx" id="habilitando-o-daemon-pra-subir-no-boot-do-sistema-1">Habilitando o daemon pra subir no boot do sistema:</h4>
 <pre><code class="fenced-code-block language-bash">systemctl daemon reload</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl <span class="token builtin class-name">enable</span> samba-ad-dc.service</code></pre>
@@ -1638,23 +1540,20 @@ netgroup:       nis</code></pre>
 <h4 class="atx" id="editando-o-arquivo-do-kerberos">Editando o arquivo do kerberos:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">mv</span> /etc/krb5.conf<span class="token punctuation">{</span>,.orig<span class="token punctuation">}</span></code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/krb5.conf</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>libdefaults<span class="token punctuation">]</span>
+<pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>libdefaults<span class="token punctuation">]</span> <span class="token comment">#(sem espaço no canto dessa linha)</span>
     dns_lookup_realm <span class="token operator">=</span> <span class="token boolean">false</span>
     dns_lookup_kdc <span class="token operator">=</span> <span class="token boolean">true</span>
-    default_realm <span class="token operator">=</span> OFFICINAS.EDU</code></pre>
-<h4 class="atx" id="provisionando-o-servidor-pdc02">Provisionando o servidor pdc02:</h4>
-<pre><code class="fenced-code-block language-bash">samba-tool domain <span class="token function">join</span> OFFICINAS.EDU DC -U Administrator --realm<span class="token operator">=</span>OFFICINAS.EDU --dns-backend<span class="token operator">=</span>SAMBA_INTERNAL --option<span class="token operator">=</span><span class="token string">"interfaces=lo enp1s0"</span> --option<span class="token operator">=</span><span class="token string">"bind interfaces only=yes"</span> --option<span class="token operator">=</span><span class="token string">"idmap_ldb:use-rfc2307=yes"</span></code></pre>
-<h4 class="atx" id="editando-o-arquivo-smbconf">Editando o arquivo smb.conf:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /opt/samba/etc/smb.conf</code></pre>
+    default_realm <span class="token operator">=</span> ESHARKNET.EDU</code></pre>
+<h4 class="atx" id="visualizando-o-arquivo-smbconf">Visualizando o arquivo smb.conf:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">cat</span> /opt/samba/etc/smb.conf</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token comment"># Global parameters</span>
 <span class="token punctuation">[</span>global<span class="token punctuation">]</span>
     <span class="token builtin class-name">bind</span> interfaces only <span class="token operator">=</span> Yes
-    dns forwarder <span class="token operator">=</span> <span class="token number">192.168</span>.70.253 <span class="token number">192.168</span>.70.254
     interfaces <span class="token operator">=</span> lo enp1s0
-    netbios name <span class="token operator">=</span> pdc02
-    realm <span class="token operator">=</span> OFFICINAS.EDU
+    netbios name <span class="token operator">=</span> DC02
+    realm <span class="token operator">=</span> ESHARKNET.EDU
     server role <span class="token operator">=</span> active directory domain controller
-    workgroup <span class="token operator">=</span> OFFICINAS
+    workgroup <span class="token operator">=</span> ESHARKNET
     idmap_ldb:use-rfc2307 <span class="token operator">=</span> <span class="token function">yes</span>
 
 <span class="token punctuation">[</span>sysvol<span class="token punctuation">]</span>
@@ -1662,69 +1561,69 @@ netgroup:       nis</code></pre>
     <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No
 
 <span class="token punctuation">[</span>netlogon<span class="token punctuation">]</span>
-    path <span class="token operator">=</span> /opt/samba/var/locks/sysvol/officinas.edu/scripts
+    path <span class="token operator">=</span> /opt/samba/var/locks/sysvol/esharknet.edu/scripts
     <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No</code></pre>
 <h4 class="atx" id="validando-as-entradas-dns-usadas">Validando as entradas DNS usadas:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">apt</span> <span class="token function">install</span> ldb-tools</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t A officinas.edu.</code></pre>
-<h4 class="atx" id="se-necessario-se-necessario-adicione-as-entradas-do-pdc02-manualmente-ao-dns-do-samba4-no-pdc01">(SE NECESSÁRIO), SE Necessário, adicione as entradas do pdc02, manualmente AO DNS do Samba4, no pdc01:</h4>
-<pre><code class="fenced-code-block language-bash">samba-tool dns <span class="token function">add</span> pdc01 OFFICINAS.EDU pdc02 A <span class="token number">192.168</span>.70.252 -U administrator</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t A esharknet.edu.</code></pre>
+<h4 class="atx" id="se-necessario-se-necessario-adicione-as-entradas-do-dc02-manualmente-ao-dns-do-samba4-no-dc01">(SE NECESSÁRIO), SE Necessário, adicione as entradas do dc02, manualmente AO DNS do Samba4, no dc01:</h4>
+<pre><code class="fenced-code-block language-bash">samba-tool dns <span class="token function">add</span> dc01 ESHARKNET.EDU dc02 A <span class="token number">192.168</span>.70.200 -U administrator</code></pre>
 <pre><code class="fenced-code-block language-bash">ldbsearch -H /opt/samba/private/sam.ldb <span class="token string">'(invocationId=*)'</span> --cross-ncs objectguid</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t CNAME df4bdd8c-abc7-4779-b01e-4dd4553ca3e9._msdcs.officinas.edu.</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t CNAME df4bdd8c-abc7-4779-b01e-4dd4553ca3e9._msdcs.esharknet.edu.</code></pre>
 <h4 class="atx" id="se-nao-rodar-execute-a-replicacao-para-todos-os-dcs">SE não rodar, execute a replicação para todos os DCs:</h4>
-<pre><code class="fenced-code-block language-bash">samba-tool dns <span class="token function">add</span> pdc01 _msdcs.officinas.edu df4bdd8c-abc7-4779-b01e-4dd4553ca3e9 CNAME pdc02.officinas.edu -Uadministrator</code></pre>
+<pre><code class="fenced-code-block language-bash">samba-tool dns <span class="token function">add</span> dc01 _msdcs.esharknet.edu df4bdd8c-abc7-4779-b01e-4dd4553ca3e9 CNAME dc02.esharknet.edu -Uadministrator</code></pre>
 <h4 class="atx" id="pasta-sysvol">PASTA SYSVOL</h4>
-<h4 class="atx" id="replicando-a-pasta-sysvol-mapeando-ids-de-grupos-e-usuarios-para-o-pdc02-execute-estes-comando-no-pdc01">Replicando a pasta sysvol. Mapeando IDs de grupos e usuários para o pdc02 (execute estes comando NO pdc01):</h4>
+<h4 class="atx" id="replicando-a-pasta-sysvol-mapeando-ids-de-grupos-e-usuarios-para-o-dc02-execute-estes-comando-no-dc01">Replicando a pasta sysvol. Mapeando IDs de grupos e usuários para o dc02 (execute estes comando NO DC01):</h4>
 <pre><code class="fenced-code-block language-bash">tdbbackup -s .bak /opt/samba/private/idmap.ldb</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">scp</span> -rv -p22200 /opt/samba/private/idmap.ldb.bak root@pdc02:/root</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">scp</span> -rv -p22200 /opt/samba/var/locks/sysvol/* root@pdc02:/opt/samba/var/locks/sysvol</code></pre>
-<h4 class="atx" id="aplicando-o-arquivo-bd-que-enviamos-do-pdc01-execute-estes-comandos-no-pdc02">Aplicando o arquivo BD que enviamos do pdc01 (execute estes comandos NO pdc02):</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">scp</span> -rv -p22200 /opt/samba/private/idmap.ldb.bak root@dc02:/root</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">scp</span> -rv -p22200 /opt/samba/var/locks/sysvol/* root@dc02:/opt/samba/var/locks/sysvol</code></pre>
+<h4 class="atx" id="aplicando-o-arquivo-bd-que-enviamos-do-dc01-execute-estes-comandos-no-dc02">Aplicando o arquivo BD que enviamos do dc01 (execute estes comandos NO DC02):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">mv</span> /root/idmap.ldb.bak /root/idmap.ldb</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">cp</span> -rfv /root/idmap.ldb /opt/samba/private/</code></pre>
 <pre><code class="fenced-code-block language-bash">samba-tool ntacl sysvolreset</code></pre>
-<h4 class="atx" id="agora-precisamos-pensar-que-tendo-dois-dcs-na-rede-se-cair-o-primario-o-secundario-assume-o-controle-e-vice-versa-logicamente-devemos-apontar-um-pro-outro-como-resolvedor-de-nomes-primario-ou-seja-o-pdc01-vai-resolver-primeiro-no-pdc02-e-o-pdc02-vai-resolver-primeiro-no-pdc01">Agora precisamos pensar que tendo dois DCs na rede, SE cair o primário o secundário assume o controle, e vice versa. Logicamente devemos apontar um pro outro como resolvedor de nomes primário, ou seja, o pdc01 vai resolver primeiro no pdc02 e o pdc02 vai resolver primeiro no pdc01:</h4>
-<h4 class="atx" id="edite-o-etcresolvconf-no-pdc01-e-aponte-pro-pdc02">Edite o /etc/resolv.conf NO pdc01 e aponte pro pdc02:</h4>
+<h4 class="atx" id="agora-precisamos-pensar-que-tendo-dois-dcs-na-rede-se-cair-o-primario-o-secundario-assume-o-controle-e-vice-versa-logicamente-devemos-apontar-um-pro-outro-como-resolvedor-de-nomes-primario-ou-seja-o-dc01-vai-resolver-primeiro-no-dc02-e-o-dc02-vai-resolver-primeiro-no-dc01">Agora precisamos pensar que tendo dois DCs na rede, SE cair o primário o secundário assume o controle, e vice versa. Logicamente devemos apontar um pro outro como resolvedor de nomes primário, ou seja, o dc01 vai resolver primeiro no dc02 e o dc02 vai resolver primeiro no dc01:</h4>
+<h4 class="atx" id="edite-o-etcresolvconf-no-dc01-e-aponte-pro-dc02">Edite o /etc/resolv.conf NO DC01 e aponte pro dc02:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/resolv.conf</code></pre>
-<pre><code class="fenced-code-block language-bash">domain           officinas.edu
-search           officinas.edu.
-nameserver       <span class="token number">192.168</span>.70.252 <span class="token comment">#(pdc02)</span>
+<pre><code class="fenced-code-block language-bash">domain           esharknet.edu
+search           esharknet.edu.
+nameserver       <span class="token number">192.168</span>.70.200 <span class="token comment">#(dc02)</span>
 nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <h4 class="atx" id="bloqueando-a-edicao-do-arquivo-resolvconf">Bloqueando a edição do arquivo resolv.conf:</h4>
 <pre><code class="fenced-code-block language-bash">chattr +i /etc/resolv.conf</code></pre>
-<h4 class="atx" id="e-no-reverso-edite-o-etcresolvconf-no-pdc02-apontando-pro-pdc01">E no reverso, edite o /etc/resolv.conf NO pdc02 apontando pro pdc01:</h4>
+<h4 class="atx" id="e-no-reverso-edite-o-etcresolvconf-no-dc02-apontando-pro-dc01">E no reverso, edite o /etc/resolv.conf NO DC02 apontando pro dc01:</h4>
 <h4 class="atx" id="desbloqueando-a-edicao-do-arquivo-resolvconf">Desbloqueando a edição do arquivo resolv.conf:</h4>
 <pre><code class="fenced-code-block language-bash">chattr -i /etc/resolv.conf</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/resolv.conf</code></pre>
-<pre><code class="fenced-code-block language-bash">domain           officinas.edu
-search           officinas.edu.
-nameserver       <span class="token number">192.168</span>.70.253 <span class="token comment">#(pdc01)</span>
+<pre><code class="fenced-code-block language-bash">domain           esharknet.edu
+search           esharknet.edu.
+nameserver       <span class="token number">192.168</span>.70.250 <span class="token comment">#(dc01)</span>
 nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <h4 class="atx" id="bloqueando-a-edicao-do-arquivo-resolvconf-1">Bloqueando a edição do arquivo resolv.conf:</h4>
 <pre><code class="fenced-code-block language-bash">chattr +i /etc/resolv.conf</code></pre>
 <h4 class="atx" id="validando-a-replicacao--execute-em-todos-os-dcs">Validando a replicação ( execute em todos os DCs):</h4>
 <pre><code class="fenced-code-block language-bash">samba-tool drs showrepl</code></pre>
-<h4 class="atx" id="criando-um-usuario-no-pdc01-execute-no-pdc01">Criando um usuário no pdc01 (execute NO pdc01):</h4>
+<h4 class="atx" id="criando-um-usuario-no-dc01-execute-no-dc01">Criando um usuário no dc01 (execute NO DC01):</h4>
 <pre><code class="fenced-code-block language-bash">samba-tool user create userteste</code></pre>
 <pre><code class="fenced-code-block language-bash">samba-tool user list</code></pre>
-<h4 class="atx" id="validando-no-pdc02-se-consta-o-usuario-criado-no-pdc01-execute-no-pdc02">Validando no pdc02, se consta o usuário criado no pdc01 (execute NO pdc02):</h4>
+<h4 class="atx" id="validando-no-dc02-se-consta-o-usuario-criado-no-dc01-execute-no-dc02">Validando no dc02, se consta o usuário criado no dc01 (execute NO DC02):</h4>
 <pre><code class="fenced-code-block language-bash">samba-tool user list</code></pre>
 <h4 class="atx" id="validando-o-compartilhamento-padrao">Validando o compartilhamento padrão:</h4>
 <pre><code class="fenced-code-block language-bash">smbclient -L localhost -U%</code></pre>
 <pre><code class="fenced-code-block language-bash">smbclient //localhost/netlogon -UAdministrator -c <span class="token string">'ls'</span></code></pre>
 <h4 class="atx" id="validando-o-dns-local">Validando o DNS local:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t A officinas.edu localhost</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t A esharknet.edu localhost</code></pre>
 <h4 class="atx" id="validando-a-troca-de-tickets-do-kerberos-1">Validando a troca de tickets do kerberos:</h4>
 <pre><code class="fenced-code-block language-bash">kinit Administrator</code></pre>
 <pre><code class="fenced-code-block language-bash">klist</code></pre>
 <h4 class="atx" id="validando-configuracao-de-kerberos-e-ldap">Validando configuração de kerberos e ldap:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t srv _kerberos._tcp.officinas.edu</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t srv _ldap._tcp.officinas.edu</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">dig</span> officinas.edu</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t srv _kerberos._tcp.esharknet.edu</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t srv _ldap._tcp.esharknet.edu</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">dig</span> esharknet.edu</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">host</span> -t A <span class="token operator">&lt;</span>máquina <span class="token keyword">do</span> domínio<span class="token operator">&gt;</span></code></pre>
 <h4 class="atx" id="validando-informacoes-de-servidor-qual-controla-o-pdc-emulator">Validando informações de servidor qual controla o PDC Emulator:</h4>
 <pre><code class="fenced-code-block language-bash">samba-tool fsmo show <span class="token operator">|</span> <span class="token function">grep</span> -i pdc</code></pre>
 <pre><code class="fenced-code-block language-bash">samba-tool fsmo show</code></pre>
-<h4 class="atx" id="validando-a-localizacao-do-diretorio-and39sysvoland39-do-pdc01">Validando a localização do diretório 'sysvol' do pdc01:</h4>
+<h4 class="atx" id="validando-a-localizacao-do-diretorio-and39sysvoland39-do-dc01">Validando a localização do diretório 'sysvol' do dc01:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">uname</span> -ra</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">find</span> /opt/samba -iname sysvol</code></pre>
 <pre><code class="fenced-code-block language-bash">     /opt/samba/var/locks/sysvol</code></pre>
@@ -1733,51 +1632,51 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <h4 class="atx" id="validando-a-uuid-do-seu-disco">Validando a UUID do seu disco:</h4>
 <pre><code class="fenced-code-block language-bash">blkid /dev/sda2 <span class="token comment">#(Sete A SUA partição de disco)</span></code></pre>
 <h4 class="atx" id="validando-suporte-ativo-no-kernel-as-flags-de-acl-e-seguranca">Validando suporte ativo no Kernel ás flags de acl e segurança:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">cat</span> /boot/config-6.1.0-17-amd64 <span class="token operator">|</span> <span class="token function">grep</span> _ACL</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">cat</span> /boot/config-6.1.0-17-amd64 <span class="token operator">|</span> <span class="token function">grep</span> FS_SECURITY</code></pre>
-<h4 class="atx" id="gerando-e-enviando-as-chaves-do-ssh-para-sincronizacao-entre-o-pdc01-e-o-pdc02-crie-as-chaves-no-pdc01-e-envie-a-chave-publica-para-o-pdc02">Gerando e enviando as chaves do ssh para sincronização entre o pdc01 e o pdc02 (crie as chaves NO pdc01 e envie a chave pública para o pdc02):</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">cat</span> /boot/config-6.4.0-3-amd64 <span class="token operator">|</span> <span class="token function">grep</span> _ACL</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">cat</span> /boot/config-6.4.0-3-amd64 <span class="token operator">|</span> <span class="token function">grep</span> FS_SECURITY</code></pre>
+<h4 class="atx" id="gerando-e-enviando-as-chaves-do-ssh-para-sincronizacao-entre-o-dc01-e-o-dc02-crie-as-chaves-no-dc01-e-envie-a-chave-publica-para-o-dc02">Gerando e enviando as chaves do ssh para sincronização entre o dc01 e o dc02 (crie as chaves NO DC01 e envie a chave pública para o dc02):</h4>
 <h4 class="atx" id="pode-deixar-a-senha-em-branco-se-preferir">(Pode deixar a senha em branco SE preferir)</h4>
 <pre><code class="fenced-code-block language-bash">ssh-keygen -t rsa -b <span class="token number">1024</span></code></pre>
-<pre><code class="fenced-code-block language-bash">ssh-copy-id -p22200 -i ~/.ssh/id_rsa.pub root@pdc02 <span class="token comment">#(O MEU pdc02 usa a porta ssh 22200)</span></code></pre>
+<pre><code class="fenced-code-block language-bash">ssh-copy-id -p22200 -i ~/.ssh/id_rsa.pub root@dc02 <span class="token comment">#(O MEU dc02 usa a porta ssh 22200)</span></code></pre>
 <h4 class="atx" id="testando-a-conexao-por-ssh-sem-pedir-senha-se-vc-deixou-em-branco">Testando a conexão por ssh sem pedir senha (SE vc deixou em branco):</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">ssh</span> -p22200 pdc02</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ssh</span> -p22200 dc02</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">exit</span></code></pre>
-<h4 class="atx" id="agora-inverta-a-ordem-e-crie-as-chaves-no-pdc02-e-envie-para-o-pdc01-rode-estes-comandos-no-pdc02">Agora inverta a ordem e crie as chaves NO pdc02 e envie para o pdc01 (Rode estes comandos NO pdc02):</h4>
+<h4 class="atx" id="agora-inverta-a-ordem-e-crie-as-chaves-no-dc02-e-envie-para-o-dc01-rode-estes-comandos-no-dc02">Agora inverta a ordem e crie as chaves NO DC02 e envie para o dc01 (Rode estes comandos NO DC02):</h4>
 <pre><code class="fenced-code-block language-bash">ssh-keygen -t rsa -b <span class="token number">1024</span></code></pre>
-<pre><code class="fenced-code-block language-bash">ssh-copy-id -p22250 -i ~/.ssh/id_rsa.pub root@pdc01 <span class="token comment">#(enviando para o pdc01, que usa porta ssh 22250)</span></code></pre>
+<pre><code class="fenced-code-block language-bash">ssh-copy-id -p22250 -i ~/.ssh/id_rsa.pub root@dc01 <span class="token comment">#(enviando para o dc01, que usa porta ssh 22250)</span></code></pre>
 <h4 class="atx" id="testando-a-conexao-por-ssh-sem-pedir-senha-se-vc-deixou-em-branco-1">Testando a conexão por ssh sem pedir senha (SE vc deixou em branco):</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">ssh</span> -p22250 pdc01</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ssh</span> -p22250 dc01</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">exit</span></code></pre>
-<h4 class="atx" id="criando-script-de-sincronizacao-com-rsync-do-diretorio-and39sysvoland39-do-pdc01-para-envio-ao-pdc02-rode-estes-comando-no-pdc01">Criando script de sincronização com rsync do diretório 'sysvol' DO pdc01 para envio ao pdc02 (rode estes comando NO pdc01):</h4>
+<h4 class="atx" id="criando-script-de-sincronizacao-com-rsync-do-diretorio-and39sysvoland39-do-dc01-para-envio-ao-dc02-rode-estes-comando-no-dc01">Criando script de sincronização com rsync do diretório 'sysvol' DO DC01 para envio ao dc02 (rode estes comando NO DC01):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /opt</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> rsync-sysvol.sh</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token shebang important">#!/bin/bash</span>
-<span class="token comment"># Sincronizando Diretorios do Sysvol do pdc01 para envio ao pdc02:</span>
-<span class="token comment">#rsync -Cravz /opt/samba/var/locks/sysvol/*  root@192.168.70.252:/opt/samba/var/locks/sysvol/</span>
-<span class="token comment"># no MEU CASO onde a porta do ssh não á a default. MEU pdc02 usa 22200:</span>
-<span class="token function">rsync</span> -Cravz -e <span class="token string">"ssh -p 22200"</span> /opt/samba/var/locks/sysvol/*  root@192.168.70.252:/opt/samba/var/locks/sysvol/</code></pre>
+<span class="token comment"># Sincronizando Diretorios do Sysvol do dc01 para envio ao dc02:</span>
+<span class="token comment">#rsync -Cravz /opt/samba/var/locks/sysvol/*  root@192.168.70.200:/opt/samba/var/locks/sysvol/</span>
+<span class="token comment"># no MEU CASO onde a porta do ssh não á a default. MEU dc02 usa 22200:</span>
+<span class="token function">rsync</span> -Cravz -e <span class="token string">"ssh -p 22200"</span> /opt/samba/var/locks/sysvol/*  root@192.168.70.200:/opt/samba/var/locks/sysvol/</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x rsync-sysvol</code></pre>
 <pre><code class="fenced-code-block language-bash">./rsync-sysvol</code></pre>
-<h4 class="atx" id="agendando-a-sincronizacao-no-cron-do-pdc01">Agendando a sincronização no cron do pdc01:</h4>
+<h4 class="atx" id="agendando-a-sincronizacao-no-cron-do-dc01">Agendando a sincronização no cron do dc01:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">crontab</span> -e</code></pre>
 <pre><code class="fenced-code-block language-bash">*/5 * * * * root  <span class="token function">bash</span> /opt/rsync-sysvol.sh --silent</code></pre>
-<h4 class="atx" id="repita-o-processo-de-replicacao-do-sysvol-agora-no-pdc02-invertendo-os-apontamentos-de-ip-obviamente">REPITA o processo de replicação do sysvol, agora NO pdc02, INVERTENDO os apontamentos de ip, obviamente!</h4>
-<h4 class="atx" id="criando-script-de-sincronizacao-do-diretorio-and39sysvoland39-do-pdc02-para-envio-ao-pdc01-rode-os-comando-agora-no-pdc02">Criando script de sincronização do diretório 'sysvol' DO pdc02 para envio ao pdc01 (rode os comando agora NO pdc02):</h4>
+<h4 class="atx" id="repita-o-processo-de-replicacao-do-sysvol-agora-no-dc02-invertendo-os-apontamentos-de-ip-obviamente">REPITA o processo de replicação do sysvol, agora NO DC02, INVERTENDO os apontamentos de ip, obviamente!</h4>
+<h4 class="atx" id="criando-script-de-sincronizacao-do-diretorio-and39sysvoland39-do-dc02-para-envio-ao-dc01-rode-os-comando-agora-no-dc02">Criando script de sincronização do diretório 'sysvol' DO DC02 para envio ao dc01 (rode os comando agora NO DC02):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /opt</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> rsync-sysvol.sh</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token shebang important">#!/bin/bash</span>
-<span class="token comment"># Sincronizando Diretorios do Sysvol do pdc01 para envio ao pdc02:</span>
-<span class="token comment">#rsync -Cravz /opt/samba/var/locks/sysvol/*  root@192.168.70.253:/opt/samba/var/locks/sysvol/</span>
-<span class="token comment"># no MEU CASO onde a porta do ssh não á a default. MEU pdc01 usa 22250:</span>
-<span class="token function">rsync</span> -Cravz -e <span class="token string">"ssh -p 22250"</span> /opt/samba/var/locks/sysvol/*  root@192.168.70.253:/opt/samba/var/locks/sysvol/</code></pre>
+<span class="token comment"># Sincronizando Diretorios do Sysvol do dc01 para envio ao dc02:</span>
+<span class="token comment">#rsync -Cravz /opt/samba/var/locks/sysvol/*  root@192.168.70.250:/opt/samba/var/locks/sysvol/</span>
+<span class="token comment"># no MEU CASO onde a porta do ssh não á a default. MEU dc01 usa 22250:</span>
+<span class="token function">rsync</span> -Cravz -e <span class="token string">"ssh -p 22250"</span> /opt/samba/var/locks/sysvol/*  root@192.168.70.250:/opt/samba/var/locks/sysvol/</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x rsync-sysvol</code></pre>
 <pre><code class="fenced-code-block language-bash">./rsync-sysvol</code></pre>
-<h4 class="atx" id="agendando-a-sincronizacao-no-cron-do-pdc02">Agendando a sincronização no cron do pdc02:</h4>
+<h4 class="atx" id="agendando-a-sincronizacao-no-cron-do-dc02">Agendando a sincronização no cron do dc02:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">crontab</span> -e</code></pre>
 <pre><code class="fenced-code-block language-bash">*/5 * * * * root  <span class="token function">bash</span> /opt/rsync-sysvol.sh --silent</code></pre>
 <h4 class="atx" id="as-estacoes-de-trabalho-usarao-como-dns-primario-o-pdc-emulator-do-dominio-e-como-dns-secundario-o-pdc-secundario-da-rede">As Estações de trabalho, usarão, como DNS primário o PDC Emulator do Domínio, e como DNS secundário o PDC Secundário da rede.</h4>
 <h4 class="atx" id="osync">OSYNC</h4>
-<h4 class="atx" id="configurando-a-sincronizacao-da-pasta-sysvol-com-osync-que-vai-espelhar-os-dcs-rode-esses-comandos-no-pdc01-primeiro">Configurando a sincronização da pasta sysvol com osync, que vai espelhar os DCs (rode esses comandos NO pdc01, primeiro):</h4>
+<h4 class="atx" id="configurando-a-sincronizacao-da-pasta-sysvol-com-osync-que-vai-espelhar-os-dcs-rode-esses-comandos-no-dc01-primeiro">Configurando a sincronização da pasta sysvol com osync, que vai espelhar os DCs (rode esses comandos NO DC01, primeiro):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /opt</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">git</span> clone https://github.com/deajan/osync.git</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> osync</code></pre>
@@ -1791,7 +1690,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 
 <span class="token assign-left variable">INITIATOR_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"/opt/samba/var/locks/sysvol"</span>
 
-<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.252:22200//opt/samba/var/locks/sysvol"</span>
+<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.200:22200//opt/samba/var/locks/sysvol"</span>
 
 <span class="token assign-left variable">SSH_RSA_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"/root/.ssh/id_rsa"</span>
 
@@ -1815,7 +1714,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 
 <span class="token assign-left variable">INITIATOR_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"/opt/samba/var/locks/sysvol"</span>
 
-<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.252:22200//opt/samba/var/locks/sysvol"</span>
+<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.200:22200//opt/samba/var/locks/sysvol"</span>
 
 <span class="token assign-left variable">SSH_RSA_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"/root/.ssh/id_rsa"</span>
 
@@ -1865,7 +1764,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <pre><code class="fenced-code-block language-bash">*/5 * * * * root  <span class="token function">bash</span> /usr/local/bin/osync.sh /etc/osync/sync.conf --silent</code></pre>
 <h4 class="atx" id="validando-os-logs-em-tempo-real-rode-o-usrlocalbinosyncsh-mantendo-outro-terminal-aberto-com-o-comando">Validando os logs em tempo real, rode o /usr/local/bin/osync.sh, mantendo outro terminal aberto com o comando:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">tail</span> -f /var/log/osync.sysvol_sync.log</code></pre>
-<h4 class="atx" id="invertendo-a-sincronizacao-com-o-osync-vamos-refazer-tudo-incluindo-o-ip-e-porta-ssh-agora-no-pdc02">INVERTENDO a sincronização com o Osync, vamos refazer tudo, incluíndo o ip e porta ssh, agora NO pdc02:</h4>
+<h4 class="atx" id="invertendo-a-sincronizacao-com-o-osync-vamos-refazer-tudo-incluindo-o-ip-e-porta-ssh-agora-no-dc02">INVERTENDO a sincronização com o Osync, vamos refazer tudo, incluíndo o ip e porta ssh, agora NO DC02:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /opt</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">git</span> clone https://github.com/deajan/osync.git</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> osync</code></pre>
@@ -1878,7 +1777,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 
 <span class="token assign-left variable">INITIATOR_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"/opt/samba/var/locks/sysvol"</span>
 
-<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.253:22250//opt/samba/var/locks/sysvol"</span>
+<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.250:22250//opt/samba/var/locks/sysvol"</span>
 
 <span class="token assign-left variable">SSH_RSA_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"/root/.ssh/id_rsa"</span>
 
@@ -1902,7 +1801,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 
 <span class="token assign-left variable">INITIATOR_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"/opt/samba/var/locks/sysvol"</span>
 
-<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.253:22250//opt/samba/var/locks/sysvol"</span>
+<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.250:22250//opt/samba/var/locks/sysvol"</span>
 
 <span class="token assign-left variable">SSH_RSA_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"/root/.ssh/id_rsa"</span>
 
@@ -1952,107 +1851,136 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <pre><code class="fenced-code-block language-bash">*/5 * * * * root  <span class="token function">bash</span> /usr/local/bin/osync.sh /etc/osync/sync.conf --silent</code></pre>
 <h4 class="atx" id="validando-os-logs-em-tempo-real-rode-o-usrlocalbinosyncsh-mantendo-outro-terminal-aberto-com-o-comando-1">Validando os logs em tempo real, rode o /usr/local/bin/osync.sh, mantendo outro terminal aberto com o comando:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">tail</span> -f /var/log/osync.sysvol_sync.log</code></pre>
+<p><a href="mailto:zerolies@disroot.org">zerolies@disroot.org</a></p>
 <p>THAT’S ALL FOLKS!!</p>
-<h1 class="atx" id="servidor-de-arquivos-com-samba4-no-debian-12">Servidor de Arquivos com Samba4 no Debian 12</h1>
+<h1 class="atx" id="construindo-um-fileserver-com-samba4-no-debian-linux-12">Construindo um FileServer com Samba4 no Debian Linux 12</h1>
+<h4 class="atx" id="-2"></h4>
 <h4 class="atx" id="layout-de-rede-usado-no-laboratorio-2">Layout de rede usado no laboratório:</h4>
-<pre><code class="fenced-code-block language-bash">firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
-pdc01           <span class="token number">192.168</span>.70.253   <span class="token punctuation">(</span>ssh <span class="token number">22253</span><span class="token punctuation">)</span>
-pdc02           <span class="token number">192.168</span>.70.252   <span class="token punctuation">(</span>ssh <span class="token number">22252</span><span class="token punctuation">)</span>
-intranet        <span class="token number">192.168</span>.70.251   <span class="token punctuation">(</span>ssh <span class="token number">22251</span><span class="token punctuation">)</span>
-arquivos        <span class="token number">192.168</span>.70.250   <span class="token punctuation">(</span>ssh <span class="token number">22250</span><span class="token punctuation">)</span>
+<pre><code class="fenced-code-block language-bash">firewall           <span class="token number">192.168</span>.70.254 - <span class="token number">192.168</span>.122.254
+dc01               <span class="token number">192.168</span>.70.250   <span class="token punctuation">(</span>ssh <span class="token number">22250</span><span class="token punctuation">)</span>
+dc02               <span class="token number">192.168</span>.70.200   <span class="token punctuation">(</span>ssh <span class="token number">22200</span><span class="token punctuation">)</span>
+fileserver         <span class="token number">192.168</span>.70.150   <span class="token punctuation">(</span>ssh <span class="token number">22150</span><span class="token punctuation">)</span>
 
-<span class="token punctuation">;</span> firewall      Servidor Firewall OPNSense
-<span class="token punctuation">;</span> pdc01         Controlador de Domínio primário
-<span class="token punctuation">;</span> pdc02         Controlador de Domínio secundário
-<span class="token punctuation">;</span> intranet      Servidor de Intranet
-<span class="token punctuation">;</span> arquivos      Servidor de Arquivos</code></pre>
-<h4 class="atx" id="instalando-as-dependencias-para-compilacao-do-codigo-fonte--do-samba4-2">Instalando as dependências para compilação do código fonte  do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">DEBIAN_FRONTEND</span><span class="token operator">=</span>noninteractive<span class="token punctuation">;</span><span class="token function">apt-get</span> update<span class="token punctuation">;</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token function">vim</span> net-tools <span class="token function">rsync</span> acl apt-utils attr autoconf bind9-utils binutils bison build-essential <span class="token function">rsync</span> ccache chrpath <span class="token function">curl</span> debhelper bind9-dnsutils docbook-xml docbook-xsl flex gcc gdb <span class="token function">git</span> glusterfs-common <span class="token function">gzip</span> heimdal-multidev <span class="token function">hostname</span> <span class="token function">htop</span> krb5-config krb5-user lcov libacl1-dev libarchive-dev libattr1-dev libavahi-common-dev libblkid-dev libbsd-dev libcap-dev libcephfs-dev libcups2-dev libdbus-1-dev libglib2.0-dev libgnutls28-dev libgpgme-dev libicu-dev libjansson-dev libjs-jquery libjson-perl libkrb5-dev libldap2-dev liblmdb-dev libncurses-dev libpam0g-dev libparse-yapp-perl libpcap-dev libpopt-dev libreadline-dev libsystemd-dev libtasn1-bin libtasn1-6-dev libunwind-dev lmdb-utils locales lsb-release <span class="token function">make</span> mawk mingw-w64 patch perl perl-modules-5.40 pkg-config procps psmisc python3 python3-cryptography python3-dbg python3-dev python3-dnspython python3-gpg python3-iso8601 python3-markdown python3-matplotlib python3-pexpect python3-pyasn1 <span class="token function">rsync</span> <span class="token function">sed</span> <span class="token function">tar</span> tree uuid-dev <span class="token function">wget</span> xfslibs-dev xsltproc zlib1g-dev -y
-
-<span class="token comment">#### Setando e validando o hostname do pdc02:</span>
-
-```bash
-<span class="token function">vim</span> /etc/hostname</code></pre>
-<pre><code class="fenced-code-block language-bash">arquivos</code></pre>
+firewall           Roteamento por Iptables
+dc01               Controlador de Domínio primário
+dc02               Controlador de Domínio secundário
+fileserver         Servidor de Arquivos</code></pre>
+<h4 class="atx" id="instalando-as-dependencias-para-compilacao-do-codigo-fonte-do-samba4-1">Instalando as dependências para compilação do código fonte do Samba4:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">DEBIAN_FRONTEND</span><span class="token operator">=</span>noninteractive<span class="token punctuation">;</span><span class="token function">apt-get</span> update<span class="token punctuation">;</span> <span class="token function">apt-get</span> <span class="token function">install</span> <span class="token function">vim</span> ntp net-tools <span class="token function">rsync</span> acl apt-utils attr autoconf bind9utils binutils bison build-essential ntp <span class="token function">rsync</span> ccache chrpath <span class="token function">curl</span> debhelper dnsutils docbook-xml docbook-xsl flex gcc gdb <span class="token function">git</span> glusterfs-common <span class="token function">gzip</span> heimdal-multidev <span class="token function">hostname</span> <span class="token function">htop</span> krb5-config krb5-user lcov libacl1-dev libarchive-dev libattr1-dev libavahi-common-dev libblkid-dev libbsd-dev libcap-dev libcephfs-dev libcups2-dev libdbus-1-dev libglib2.0-dev libgnutls28-dev libgpgme11-dev libicu-dev libjansson-dev libjs-jquery libjson-perl libkrb5-dev libldap2-dev liblmdb-dev libncurses5-dev libpam0g-dev libparse-yapp-perl libpcap-dev libpopt-dev libreadline-dev libsystemd-dev libtasn1-bin libtasn1-dev libunwind-dev lmdb-utils locales lsb-release <span class="token function">make</span> mawk mingw-w64 patch perl perl-modules pkg-config procps psmisc python3 python3-cryptography python3-dbg python3-dev python3-dnspython python3-gpg python3-iso8601 python3-markdown python3-matplotlib python3-pexpect python3-pyasn1 <span class="token function">rsync</span> <span class="token function">sed</span>  <span class="token function">tar</span> tree uuid-dev <span class="token function">wget</span> xfslibs-dev xsltproc zlib1g-dev -y</code></pre>
+<h4 class="atx" id="setando-e-validando-o-hostname-do-dc02-1">Setando e validando o hostname do dc02:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hostname</code></pre>
+<pre><code class="fenced-code-block language-bash">fileserver</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">hostname</span> -f</code></pre>
-<pre><code class="fenced-code-block language-bash">arquivos.officinas.edu</code></pre>
+<pre><code class="fenced-code-block language-bash">fileserver.esharknet.edu</code></pre>
 <h4 class="atx" id="configurando-o-arquivo-de-hosts-2">Configurando o arquivo de hosts:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/hosts</code></pre>
 <pre><code class="fenced-code-block language-bash">.0.0.1              localhost
-<span class="token number">127.0</span>.1.1           arquivos.officinas.edu    arquivos
-<span class="token number">192.168</span>.70.250      arquivos.officinas.edu    arquivos</code></pre>
-<h4 class="atx" id="setando-ip-fixo-no-servidor-pdc02-1">Setando ip fixo no servidor pdc02:</h4>
+<span class="token number">127.0</span>.1.1           fileserver.esharknet.edu fileserver
+<span class="token number">192.168</span>.70.150      fileserver.esharknet.edu fileserver
+<span class="token number">192.168</span>.70.200      dc02.esharknet.edu       dc02
+<span class="token number">192.168</span>.70.250      dc01.esharknet.edu       dc01
+<span class="token number">192.168</span>.70.254      firewall.esharknet.edu   firewall</code></pre>
+<h4 class="atx" id="setando-ip-fixo-no-servidor-dc02-1">Setando ip fixo no servidor dc02:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/network/interfaces</code></pre>
 <pre><code class="fenced-code-block language-bash">allow-hotplug enp1s0
 iface enp1s0 inet static
-address           <span class="token number">192.168</span>.70.250
+address           <span class="token number">192.168</span>.70.150
 netmask           <span class="token number">255.255</span>.255.0
 gateway           <span class="token number">192.168</span>.70.254</code></pre>
-<h4 class="atx" id="apontando-o-endereco-do-resolvedor-de-nomes-principal-da-rede-pro-controlador-de-dominio-primario-pdc01-temporario">Apontando o endereço do resolvedor de nomes principal da rede pro Controlador de domínio primário, pdc01 (temporário):</h4>
+<h4 class="atx" id="apontando-o-endereco-do-resolvedor-de-nomes-principal-da-rede-pro-controlador-de-dominio-primario-dc01-temporario">Apontando o endereço do resolvedor de nomes principal da rede pro Controlador de domínio primário, dc01 (temporário):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/resolv.conf</code></pre>
-<pre><code class="fenced-code-block language-bash">domain           officinas.edu
-search           officinas.edu.
-nameserver       <span class="token number">192.168</span>.70.253
-nameserver       <span class="token number">192.168</span>.70.252</code></pre>
+<pre><code class="fenced-code-block language-bash">domain           esharknet.edu
+search           esharknet.edu.
+nameserver       <span class="token number">192.168</span>.70.250 <span class="token comment">#(dc01)</span>
+nameserver       <span class="token number">192.168</span>.70.200 <span class="token comment">#(dc02)</span></code></pre>
 <h4 class="atx" id="bloqueando-alteracao-do-resolvconf-1">Bloqueando alteração do resolv.conf:</h4>
 <pre><code class="fenced-code-block language-bash">chattr +i /etc/resolv.conf</code></pre>
-<h4 class="atx" id="validando-a-resolucao-de-nomes-pelo-pdc01-1">Validando a resolução de nomes pelo pdc01:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">nslookup</span> officinas.edu</code></pre>
-<pre><code class="fenced-code-block language-bash">Server:         <span class="token number">192.168</span>.70.253
-Address:        <span class="token number">192.168</span>.70.253<span class="token comment">#53</span>
+<h4 class="atx" id="validando-a-resolucao-de-nomes-pelo-dc01-1">Validando a resolução de nomes pelo dc01:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">nslookup</span> esharknet.edu</code></pre>
+<pre><code class="fenced-code-block language-bash">Server:         <span class="token number">192.168</span>.70.250
+Address:        <span class="token number">192.168</span>.70.250<span class="token comment">#53</span>
 
-Name:   officinas.edu
-Address: <span class="token number">192.168</span>.70.253</code></pre>
+Name:   esharknet.edu
+Address: <span class="token number">192.168</span>.70.250
+Name:   esharknet.edu
+Address: <span class="token number">192.168</span>.70.200</code></pre>
 <h4 class="atx" id="relendo-as-configuracoes-de-rede-1">Relendo as configurações de rede:</h4>
 <pre><code class="fenced-code-block language-bash">systemctl restart networking</code></pre>
 <h4 class="atx" id="validando-o-ip-da-placa-2">Validando o ip da placa:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -c addr</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -br <span class="token function">link</span></code></pre>
 <h4 class="atx" id="baixando-e-compilando-o-codigo-fonte-do-samba4-2">Baixando e compilando o código fonte do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.3</code></pre>
-<pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba <span class="token punctuation">\</span>
-  --with-winbind <span class="token punctuation">\</span>
-  --with-shared-modules<span class="token operator">=</span>idmap_rid,idmap_ad</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">make</span> -j<span class="token variable"><span class="token variable">$(</span>nproc<span class="token variable">)</span></span></code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">make</span> <span class="token function">install</span></code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">make</span> clean</code></pre>
-<h4 class="atx" id="validar-se-o-winbind-e-nss-foram-compilados-1">Validar se o winbind e NSS foram compilados</h4>
-<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd -b <span class="token operator">|</span> <span class="token function">grep</span> WINBIND</code></pre>
-<pre><code class="fenced-code-block language-bash">WITH_WINBIND</code></pre>
-<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd -b <span class="token operator">|</span> <span class="token function">grep</span> LIBDIR</code></pre>
-<pre><code class="fenced-code-block language-bash">LIBDIR: /opt/samba/lib</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">find</span> /opt/samba -name <span class="token string">"libnss_winbind.so*"</span></code></pre>
-<pre><code class="fenced-code-block language-bash">/opt/samba/lib/libnss_winbind.so.2</code></pre>
-<h2 class="atx" id="linkar-as-bibliotecas-compiladas-do-winbind-e-nss-ao-path-do-sistema-operacional-rode-esses-comandos-manualmente-sem-copiar-e-colar-1">Linkar as bibliotecas compiladas do Winbind e NSS ao path do Sistema Operacional (rode esses comandos manualmente sem copiar e colar):</h2>
-<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /opt/samba/lib/libnss_winbind.so.2 /lib/x86_64-linux-gnu</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /lib/x86_64-linux-gnu/libnss_winbind.so.2 /lib/x86_64-linux-gnu/libnss_winbind.so</code></pre>
-<pre><code class="fenced-code-block language-bash">ldconfig</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.18.6.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.18.6.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.18.6</code></pre>
+<pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">make</span> <span class="token operator">&amp;&amp;</span> <span class="token function">make</span> <span class="token function">install</span></code></pre>
 <h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc-2">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
 <h4 class="atx" id="pathandquotusrlocalsbinusrlocalbinusrsbinusrbinsbinbinoptsambabinoptsambasbinandquot-2">PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> ~/.bashrc</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token string">"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</span></code></pre>
 <h4 class="atx" id="relendo-o-arquivo-de-profile-2">Relendo o arquivo de profile:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> ~/.bashrc</code></pre>
-<h4 class="atx" id="atencao-nao-provisione-o-samba-do-arquivos">ATENÇÃO!! NÃO PROVISIONE O SAMBA DO arquivos!!</h4>
-<h4 class="atx" id="atencao-nao-provisione-o-samba-do-arquivos-1">ATENÇÃO!! NÃO PROVISIONE O SAMBA DO arquivos!!</h4>
-<h4 class="atx" id=""></h4>
+<h4 class="atx" id="criando-o-daemon-de-inicializacao-do-samba4-com-o-sistema-2">Criando o daemon de inicialização do Samba4 com o sistema:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/systemd/system/samba-ad-dc.service</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba4 Active Directory Slave Domain Controller
+   <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
+
+<span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
+   <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/samba -D
+   <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/samba.pid
+
+<span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+   <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x /etc/systemd/system/samba-ad-dc.service</code></pre>
+<h4 class="atx" id="configurando-o-servico-de-sincronizacao-de-horario-apontando-pro-controlador-de-dominio-primario-dc01-1">Configurando o serviço de sincronização de horário, apontando pro Controlador de domínio primário, dc01:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mv</span> /etc/ntpsec/ntp.conf<span class="token punctuation">{</span>,.orig<span class="token punctuation">}</span></code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/ntpsec/ntp.conf</code></pre>
+<pre><code class="fenced-code-block language-bash">driftfile /var/lib/ntpsec/ntp.drift
+leapfile /usr/share/zoneinfo/leap-seconds.list
+tos minclock <span class="token number">4</span> minsane <span class="token number">3</span>
+pool <span class="token number">192.168</span>.70.250 iburst <span class="token comment">#(dc01)</span>
+restrict default kod nomodify nopeer noquery limited
+restrict <span class="token number">127.0</span>.0.1
+restrict ::1
+tinker panic <span class="token number">0</span> <span class="token comment">#(Usado SOMENTE em VMs)</span></code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl restart ntp</code></pre>
+<pre><code class="fenced-code-block language-bash">ntpq -p</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">date</span></code></pre>
+<h4 class="atx" id="atencao-nao-provisione-o-samba-do-fileserver">ATENÇÃO!! NÃO PROVISIONE O SAMBA DO FILESERVER!!</h4>
+<h4 class="atx" id="atencao-nao-provisione-o-samba-do-fileserver-1">ATENÇÃO!! NÃO PROVISIONE O SAMBA DO FILESERVER!!</h4>
+<h4 class="atx" id="-3"></h4>
 <h4 class="atx" id="configurando-o-etckrb5conf">Configurando o /etc/krb5.conf:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token comment"># vim /etc/krb5.conf</span></code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>libdefaults<span class="token punctuation">]</span> <span class="token comment">#(sem espaço no canto dessa linha)</span>
    dns_lookup_realm <span class="token operator">=</span> <span class="token boolean">false</span>
    dns_lookup_kdc <span class="token operator">=</span> <span class="token boolean">true</span>
-   default_realm <span class="token operator">=</span> OFFICINAS.EDU</code></pre>
+   default_realm <span class="token operator">=</span> ESHARKNET.EDU</code></pre>
+<h4 class="atx" id="configurando-o-time-server">Configurando o time server:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">apt-get</span> <span class="token function">install</span> ntp ntpdate -y</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">nano</span> /etc/ntpsec/ntp.conf</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token comment"># Relógio Local ( Nota: Este não é o endereço localhost! )</span>
+   server <span class="token number">127.127</span>.1.0
+   fudge  <span class="token number">127.127</span>.1.0 stratum <span class="token number">10</span>
+   server <span class="token number">192.168</span>.70.250 iburst prefer <span class="token comment">#(dc01)</span>
+   driftfile /var/lib/ntp/ntp.drift
+   logfile   /var/log/ntp
+   restrict default ignore
+   restrict <span class="token number">127.0</span>.0.1
+   restrict <span class="token number">192.168</span>.70.250   mask <span class="token number">255.255</span>.255.255    nomodify notrap nopeer noquery</code></pre>
+<pre><code class="fenced-code-block language-bash">systemctl restart ntp</code></pre>
+<pre><code class="fenced-code-block language-bash">ntpq -p</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">date</span></code></pre>
 <h4 class="atx" id="validando-mapeamentos">Validando mapeamentos:</h4>
-<pre><code class="fenced-code-block language-bash">getent hosts arquivos</code></pre>
+<pre><code class="fenced-code-block language-bash">getent hosts fileserver</code></pre>
 <h4 class="atx" id="configurando-o-smbconf">Configurando o smb.conf:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token comment"># vim /opt/samba/etc/smb.conf</span></code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token comment"># Define as informações do domínio.</span>
    <span class="token punctuation">[</span>global<span class="token punctuation">]</span>
-   workgroup <span class="token operator">=</span> OFFICINAS
-   realm <span class="token operator">=</span> officinas.edu
-   encrypt passwords <span class="token operator">=</span> <span class="token function">yes</span>
+   workgroup <span class="token operator">=</span> ESHARKNET
+   realm <span class="token operator">=</span> esharknet.edu
 
 <span class="token comment"># Define que esse servidor não aceita acesso sem autenticação.</span>
     security <span class="token operator">=</span> ADS
@@ -2075,8 +2003,8 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
 <span class="token comment"># Configurações do backend para mapeamento de IDs para compatibilidade com Windows.</span>
     idmap config * <span class="token builtin class-name">:</span> backend <span class="token operator">=</span> tdb
     idmap config * <span class="token builtin class-name">:</span> range <span class="token operator">=</span> <span class="token number">3000</span>-7999
-    idmap config OFFICINAS: backend <span class="token operator">=</span> rid
-    idmap config OFFICINAS: range <span class="token operator">=</span> <span class="token number">10000</span>-999999
+    idmap config ESHARKNET: backend <span class="token operator">=</span> rid
+    idmap config ESHARKNET: range <span class="token operator">=</span> <span class="token number">10000</span>-999999
 
 <span class="token comment"># Define que o usuário root não precisa ser mapeado.</span>
     min domain uid <span class="token operator">=</span> <span class="token number">0</span>
@@ -2098,171 +2026,132 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
    strict <span class="token function">sync</span> <span class="token operator">=</span> <span class="token function">yes</span>
 
 <span class="token comment"># Onde serão gravados os logs e o nivel de detalhes.</span>
-   log <span class="token function">file</span> <span class="token operator">=</span> /opt/samba/var/log.%m
+   log <span class="token function">file</span> <span class="token operator">=</span> /var/log/samba/%m.log
    log level <span class="token operator">=</span> <span class="token number">3</span>
-   max log size <span class="token operator">=</span> <span class="token number">50</span>
 
-<span class="token punctuation">[</span>arquivos<span class="token punctuation">]</span>
-    path <span class="token operator">=</span> /srv/arquivos
-    comment <span class="token operator">=</span> Compartilhamentos da Rede
-    <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No
-    browseable <span class="token operator">=</span> <span class="token function">yes</span>
-    writable <span class="token operator">=</span> <span class="token function">yes</span>
-    guest ok <span class="token operator">=</span> no
-    create mask <span class="token operator">=</span> 0660
-    directory mask <span class="token operator">=</span> 0770
-    vfs objects <span class="token operator">=</span> acl_xattr acl_tdb full_audit
-    map acl inherit <span class="token operator">=</span> <span class="token function">yes</span>
-    store dos attributes <span class="token operator">=</span> <span class="token function">yes</span>
-    full_audit:success <span class="token operator">=</span> renameat rewinddir unlinkat
-    full_audit:prefix <span class="token operator">=</span> %U<span class="token operator">|</span>%I<span class="token operator">|</span>%S
-    full_audit:failure <span class="token operator">=</span> none
-    full_audit:facility <span class="token operator">=</span> local4
-    full_audit:priority <span class="token operator">=</span> alert
-    %U<span class="token operator">|</span>%I<span class="token operator">|</span>%S
+   <span class="token punctuation">[</span>FILESERVER<span class="token punctuation">]</span>
+   path <span class="token operator">=</span> /home/fileserver
+   comment <span class="token operator">=</span> Compartilhamentos da Rede
+   <span class="token builtin class-name">read</span> only <span class="token operator">=</span> No
+   browseable <span class="token operator">=</span> <span class="token function">yes</span>
+   vfs objects <span class="token operator">=</span> acl_xattr acl_tdb full_audit
+   full_audit:success <span class="token operator">=</span> renameat rewinddir unlinkat
+   full_audit:prefix <span class="token operator">=</span> %U<span class="token operator">|</span>%I<span class="token operator">|</span>%S
+   full_audit:failure <span class="token operator">=</span> none
+   full_audit:facility <span class="token operator">=</span> local4
+   full_audit:priority <span class="token operator">=</span> alert
 
 <span class="token comment"># PARÂMETROS USADOS NA AUDITORIA:</span>
 <span class="token comment"># Adiciona todos os vfs objects.</span>
-<span class="token comment">#   acl_xattr acl_tdb full_audit</span>
-
+    acl_xattr acl_tdb full_audit
 <span class="token comment"># arquivos renomeados, diretórios renomeados, arquivos deletados.</span>
-<span class="token comment">#   renameat rewinddir unlinkat</span>
-
-<span class="token comment">#   usuário, ip, ação.</span>
-<span class="token comment">#   %U|%I|%S</span></code></pre>
-<h4 class="atx" id="criando-o-diretorio-de-logs-do-samba">Criando o diretório de logs do samba:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> -p /opt/samba/var/log/</code></pre>
-<h1 class="atx" id="validar-isso">VALIDAR ISSO!!</h1>
+    renameat rewinddir unlinkat
+<span class="token comment"># usuário, ip, ação.</span>
+    %U<span class="token operator">|</span>%I<span class="token operator">|</span>%S</code></pre>
+<pre><code class="fenced-code-block language-bash"> restart.samba</code></pre>
 <h4 class="atx" id="auditando-arquivos-deletados">Auditando arquivos deletados:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">cat</span> /var/log/syslog <span class="token operator">|</span> <span class="token function">grep</span> unlinkat</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">tail</span> -f /var/log/syslog <span class="token operator">|</span> <span class="token function">grep</span> unlinkat <span class="token comment">#(Teste em tempo real).</span></code></pre>
-<h5 class="atx" id="setando-ordenacao-de-autenticacao-para-winbind">Setando ordenação de autenticação para winbind</h5>
+<h4 class="atx" id="criando-o-diretorio-da-rede">Criando o diretório da rede:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /home/fileserver</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> -R 0770 /home/fileserver</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chown</span> -R root:<span class="token string">"domain admins"</span> /home/fileserver</code></pre>
+<pre><code class="fenced-code-block language-bash">getfacl /home/fileserver</code></pre>
+<h4 class="atx" id="extra-se-optar-por-uso-de-perfil-movel">EXTRA! SE optar por uso de perfil móvel:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /opt/samba/var/lib/samba/profiles</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> -R 0770 /opt/samba/var/lib/samba/profiles</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chown</span> -R root:<span class="token string">"domain admins"</span> /opt/samba/var/lib/samba/profiles</code></pre>
+<h4 class="atx" id="adicionando-o-path-do-optsambaetcsmbconf">Adicionando o path do /opt/samba/etc/smb.conf:</h4>
+<h4 class="atx" id="linkando-as-bibliotecas-para-mapeamento-de-usuarios-de-sistema-local-e-samba4">Linkando as bibliotecas para mapeamento de usuários de sistema local e Samba4:</h4>
+<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd -b <span class="token operator">|</span> <span class="token function">grep</span> LIBDIR</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /opt/samba/lib/libnss_winbind.so.2 /lib/x86-64-linux-gnu</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /lib/x86_64-linux-gnu/libnss_winbind.so.2 /lib/x86_64-linux-gnu/libnss_winbind.so</code></pre>
+<pre><code class="fenced-code-block language-bash">ldconfig</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/nsswitch.conf</code></pre>
 <pre><code class="fenced-code-block language-bash">   passwd: files systemd winbind
    group: files systemd winbind
    shadow: files</code></pre>
 <h4 class="atx" id="dando-poderes-de-root-ao-administrator-1">Dando poderes de root ao Administrator:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /opt/samba/etc/user.map</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token operator">!</span>root<span class="token operator">=</span>officinas.edu<span class="token punctuation">\</span>Administrator</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">nano</span> /opt/samba/etc/user.map</code></pre>
+<pre><code class="fenced-code-block language-bash">   <span class="token operator">!</span>root<span class="token operator">=</span>esharknet.edu<span class="token punctuation">\</span>Administrator</code></pre>
+<h4 class="atx" id="criando-o-diretorio-de-logs">Criando o diretório de logs:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /var/log/samba</code></pre>
 <h4 class="atx" id="validando-a-troca-de-tickets-do-kerberos-2">Validando a troca de tickets do Kerberos:</h4>
 <pre><code class="fenced-code-block language-bash">kinit Administrator</code></pre>
 <pre><code class="fenced-code-block language-bash">klist</code></pre>
-<pre><code class="fenced-code-block language-bash">Ticket cache: FILE:/tmp/krb5cc_0
-Default principal: Administrator@OFFICINAS.EDU
-
-Valid starting       Expires              Service principal
-<span class="token number">16</span>/07/2025 <span class="token number">14</span>:01:09  <span class="token number">17</span>/07/2025 00:01:09  krbtgt/OFFICINAS.EDU@OFFICINAS.EDU
-    renew <span class="token keyword">until</span> <span class="token number">17</span>/07/2025 <span class="token number">14</span>:01:04</code></pre>
-<h4 class="atx" id="ingressando-o-arquivos-ao-dominio">Ingressando o arquivos ao domínio:</h4>
+<h4 class="atx" id="ingressando-o-fileserver-ao-dominio">Ingressando o Fileserver ao domínio:</h4>
 <pre><code class="fenced-code-block language-bash">net ads <span class="token function">join</span> -U Administrator</code></pre>
-<pre><code class="fenced-code-block language-bash">Password <span class="token keyword">for</span> <span class="token punctuation">[</span>OFFICINAS<span class="token punctuation">\</span>Administrator<span class="token punctuation">]</span>:
-Using short domain name -- OFFICINAS
-Joined <span class="token string">'ARQUIVOS'</span> to dns domain <span class="token string">'officinas.edu'</span></code></pre>
-<h4 class="atx" id="adicionando-o-smbd-ao-boot-do-linux">Adicionando o SMBD ao boot do Linux:</h4>
+<h4 class="atx" id="subindo-os-servicos-ao-boot-do-sistema">Subindo os serviços ao boot do Sistema:</h4>
+<pre><code class="fenced-code-block language-bash">/opt/samba/sbin/smbd <span class="token operator">&amp;&amp;</span> /opt/samba/sbin/nmbd <span class="token operator">&amp;&amp;</span> /opt/samba/sbin/winbindd</code></pre>
+<h4 class="atx" id="adicionando-o-smbd-ao-boot-do-linux">Adicionando o smbd ao boot do Linux:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /etc/systemd/system</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> smbd.service</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
-   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba SMBD arquivos
+<pre><code class="fenced-code-block language-bash">   <span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba SMBD FileServer
    <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
-
-<span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+   <span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
    <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
    <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/smbd
-   <span class="token assign-left variable">ExecReload</span><span class="token operator">=</span>/opt/samba/sbin/smbd -s /opt/samba/etc/smb.conf --reload
-   <span class="token assign-left variable">ExecStop</span><span class="token operator">=</span>/opt/samba/sbin/smbd --terminate
    <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/smbd.pid
-
-<span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+   <span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
    <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
-<h4 class="atx" id="adicionando-o-nmbd-ao-boot-do-linux">Adicionando o NMBD ao boot do Linux:</h4>
+<h4 class="atx" id="adicionando-o-nmbd-ao-boot-do-linux">Adicionando o nmbd ao boot do Linux:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /etc/systemd/system</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> nmbd.service</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
-   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba NMBD arquivos
+<pre><code class="fenced-code-block language-bash">   <span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba NMBD FileServer
    <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
-
-<span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+   <span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
    <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
    <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/nmbd
-   <span class="token assign-left variable">ExecStop</span><span class="token operator">=</span>/opt/samba/sbin/nmbd --terminate
    <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/nmbd.pid
-
-<span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+   <span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
    <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
-<h4 class="atx" id="adicionando-o-winbind-ao-boot-do-linux">Adicionando o WINBIND ao boot do Linux:</h4>
+<h4 class="atx" id="adicionando-o-nmbd-ao-boot-do-linux-1">Adicionando o nmbd ao boot do Linux:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /etc/systemd/system</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> winbindd.service</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
-<span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba Winbind Daemon
-<span class="token assign-left variable">After</span><span class="token operator">=</span>network.target nss-lookup.target
-
-<span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
-<span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/winbindd --foreground --no-process-group
-<span class="token assign-left variable">ExecReload</span><span class="token operator">=</span>/bin/kill -HUP <span class="token variable">$MAINPID</span>
-<span class="token assign-left variable">Restart</span><span class="token operator">=</span>always
-<span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/winbindd.pid
-
-<span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
-<span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
-<h4 class="atx" id="habilitndo-e-subindo-os-servicos-do-sistema">Habilitndo e subindo os serviços do Sistema:</h4>
-<pre><code class="fenced-code-block language-bash">systemctl daemon-reexec
-systemctl daemon-reload</code></pre>
+<pre><code class="fenced-code-block language-bash">   <span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Description</span><span class="token operator">=</span>Samba WINBIND FileServer
+   <span class="token assign-left variable">After</span><span class="token operator">=</span>network.target remote-fs.target nss-lookup.target
+   <span class="token punctuation">[</span>Service<span class="token punctuation">]</span>
+   <span class="token assign-left variable">Type</span><span class="token operator">=</span>forking
+   <span class="token assign-left variable">ExecStart</span><span class="token operator">=</span>/opt/samba/sbin/winbindd
+   <span class="token assign-left variable">PIDFile</span><span class="token operator">=</span>/opt/samba/var/run/winbindd.pid
+   <span class="token punctuation">[</span>Install<span class="token punctuation">]</span>
+   <span class="token assign-left variable">WantedBy</span><span class="token operator">=</span>multi-user.target</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl <span class="token builtin class-name">enable</span> smbd.service nmbd.service winbindd.service</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x smbd.service nmbd.service winbindd.service</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">pkill</span> smb <span class="token operator">&amp;&amp;</span> <span class="token function">pkill</span> nmb <span class="token operator">&amp;&amp;</span> <span class="token function">pkill</span> winbind</code></pre>
 <pre><code class="fenced-code-block language-bash">systemctl start smbd.service nmbd.service winbindd.service</code></pre>
-<h4 class="atx" id="criando-o-diretorio-da-rede">Criando o diretório da rede:</h4>
-<pre><code class="fenced-code-block language-bash">wbinfo -g <span class="token operator">|</span> <span class="token function">grep</span> -i <span class="token string">"domain users"</span></code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> -p /srv/arquivos</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> -R 0770 /srv/arquivos</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">chown</span> -R root:<span class="token string">"Domain users"</span> /srv/arquivos</code></pre>
-<pre><code class="fenced-code-block language-bash">getfacl /srv/arquivos</code></pre>
-<h4 class="atx" id="extra-se-optar-por-uso-de-perfil-movel">EXTRA! SE optar por uso de perfil móvel:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /opt/samba/var/lib/samba/profiles</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> -R 0770 /opt/samba/var/lib/samba/profiles</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">chown</span> -R root:<span class="token string">"domain admins"</span> /opt/samba/var/lib/samba/profiles</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl start smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/start.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl stop smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/stop.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl restart smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/restart.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x /sbin/*.samba</code></pre>
+<h4 class="atx" id="facilitando-o-boot-dos-servicos">Facilitando o boot dos serviços:</h4>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl start smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/start.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl stop smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/stop.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">echo</span> <span class="token string">"systemctl restart smbd.service nmbd.service winbindd.service"</span> <span class="token operator">&gt;</span> /sbin/restart.samba</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x /sbin/*.samba</code></pre>
+<h4 class="atx" id="responde-agora-com">Responde agora com:</h4>
+<pre><code class="fenced-code-block language-bash">start.samba, restart.samba e stop.samba</code></pre>
 <h4 class="atx" id="validando-wbinfo-e-getent">Validando wbinfo e getent:</h4>
 <pre><code class="fenced-code-block language-bash">wbinfo --ping-dc</code></pre>
-<pre><code class="fenced-code-block language-bash">checking the NETLOGON <span class="token keyword">for</span> domain<span class="token punctuation">[</span>OFFICINAS<span class="token punctuation">]</span> <span class="token function">dc</span> connection to <span class="token string">"pdc01.officinas.edu"</span> succeeded</code></pre>
 <pre><code class="fenced-code-block language-bash">wbinfo -u</code></pre>
-<pre><code class="fenced-code-block language-bash">krbtgt
-guest
-administrator</code></pre>
 <pre><code class="fenced-code-block language-bash">wbinfo -g</code></pre>
-<pre><code class="fenced-code-block language-bash">ras and ias servers
-schema admins
-denied rodc password replication group
-domain <span class="token function">users</span>
-dnsupdateproxy
-enterprise read-only domain controllers
-domain admins
-group policy creator owners
-domain controllers
-protected <span class="token function">users</span>
-enterprise admins
-read-only domain controllers
-cert publishers
-domain guests
-allowed rodc password replication group
-dnsadmins
-domain computers</code></pre>
 <pre><code class="fenced-code-block language-bash">getent <span class="token function">passwd</span> Administrator</code></pre>
-<pre><code class="fenced-code-block language-bash">administrator:*:10500:10513::/home/administrator:/bin/bash</code></pre>
 <pre><code class="fenced-code-block language-bash">getent group <span class="token string">"domain admins"</span></code></pre>
-<h4 class="atx" id="teste-de-compartilhamento">Teste de compartilhamento:</h4>
-<pre><code class="fenced-code-block language-bash">smbclient //192.168.70.250/arquivos -U OFFICINAS<span class="token punctuation">\</span><span class="token punctuation">\</span>administrator</code></pre>
-<h4 class="atx" id="criando-o-script-de-backup-do-srvarquivos">Criando o script de backup do /srv/arquivos:</h4>
+<h4 class="atx" id="criando-o-script-de-backup-do-homefileserver">Criando o script de backup do /home/fileserver:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> /media/HDEXTERNO</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /opt/samba/bkpdiario.sh</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token shebang important">#!/bin/bash</span>
    <span class="token assign-left variable">INICIO</span><span class="token operator">=</span><span class="token variable"><span class="token variable">`</span><span class="token function">date</span> +%d/%m/%Y-%H:%M:%S<span class="token variable">`</span></span>
-   <span class="token assign-left variable">LOG</span><span class="token operator">=</span>/var/log/samba/bkparquivos_<span class="token variable"><span class="token variable">`</span><span class="token function">date</span> +%Y-%m-%d<span class="token variable">`</span></span>.txt
+   <span class="token assign-left variable">LOG</span><span class="token operator">=</span>/var/log/samba/bkpfileserver_<span class="token variable"><span class="token variable">`</span><span class="token function">date</span> +%Y-%m-%d<span class="token variable">`</span></span>.txt
    <span class="token builtin class-name">echo</span> <span class="token string">" "</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
    <span class="token builtin class-name">echo</span> <span class="token string">" "</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
    <span class="token builtin class-name">echo</span> <span class="token string">"|-----------------------------------------------"</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
    <span class="token builtin class-name">echo</span> <span class="token string">" Sincronizacao iniciada em <span class="token variable">$INICIO</span>"</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
    <span class="token function">umount</span> /media/HDEXTERNO
    <span class="token function">mount</span> /dev/sdb1 /media/HDEXTERNO
-   <span class="token function">rsync</span> --delete -P -r -z -v /srv/arquivos /media/HDEXTERNO/ <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
+   <span class="token function">rsync</span> --delete -P -r -z -v /home/fileserver /media/HDEXTERNO/ <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
    <span class="token assign-left variable">FINAL</span><span class="token operator">=</span><span class="token variable"><span class="token variable">`</span><span class="token function">date</span> +%d/%m/%Y-%H:%M:%S<span class="token variable">`</span></span>
    <span class="token function">umount</span> /media/HDEXTERNO
    <span class="token builtin class-name">echo</span> <span class="token string">" Sincronizacao Finalizada em <span class="token variable">$FINAL</span>"</span> <span class="token operator">&gt;&gt;</span> <span class="token variable">$LOG</span>
@@ -2275,6 +2164,7 @@ domain computers</code></pre>
 <span class="token comment"># Minuto/Hora/Dia/Mês/Dia_semana/Usuário/Comando</span>
    <span class="token number">45</span> <span class="token number">23</span> * * <span class="token number">1</span>-5 root /opt/samba/bkpdiario.sh  <span class="token operator">&gt;</span> /dev/null <span class="token operator"><span class="token file-descriptor important">2</span>&gt;</span><span class="token file-descriptor important">&amp;1</span></code></pre>
 <h4 class="atx" id="vai-montar-o-hd-externo-fazer-o-backup-e-desmontar-o-hd-externo">VAI MONTAR O HD EXTERNO, FAZER O BACKUP E DESMONTAR O HD EXTERNO!</h4>
+<p><a href="mailto:zerolies@disroot.org">zerolies@disroot.org</a></p>
 <p>THAT’S ALL FOLKS!!</p>
 </article>
 </body>
