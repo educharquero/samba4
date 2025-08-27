@@ -1,4 +1,6 @@
-# Controlador de Domínio Primário, Secundário e arquivos no Debian Linux 13
+# Controlador de Domínio Primário, Secundário e Servidor de Arquivos
+
+# Debian Linux 13 - SAMBA4 compilado
 
 #### Layout de rede usado no laboratório:
 
