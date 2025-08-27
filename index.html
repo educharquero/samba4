@@ -1251,7 +1251,8 @@ pre[class*="language-"] {
   <article class="markdown-body"><h1 class="atx" id="controlador-de-dominio-primario-secundario-e-servidor-de-arquivos">Controlador de Domínio Primário, Secundário e Servidor de Arquivos</h1>
 <h1 class="atx" id="debian-linux-13--samba4-compilado">Debian Linux 13 + SAMBA4 compilado</h1>
 <h4 class="atx" id="layout-de-rede-usado-no-laboratorio">Layout de rede usado no laboratório:</h4>
-<pre><code class="fenced-code-block language-bash">firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
+<pre><code class="fenced-code-block language-bash">Domínio         officinas.edu
+firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
 pdc01           <span class="token number">192.168</span>.70.253   <span class="token punctuation">(</span>ssh <span class="token number">22253</span><span class="token punctuation">)</span>
 pdc02           <span class="token number">192.168</span>.70.252   <span class="token punctuation">(</span>ssh <span class="token number">22252</span><span class="token punctuation">)</span>
 intranet        <span class="token number">192.168</span>.70.251   <span class="token punctuation">(</span>ssh <span class="token number">22251</span><span class="token punctuation">)</span>
@@ -1307,12 +1308,12 @@ nameserver         <span class="token number">192.168</span>.70.254</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /opt/samba/lib/libnss_winbind.so.2 /lib/x86_64-linux-gnu</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /lib/x86_64-linux-gnu/libnss_winbind.so.2 /lib/x86_64-linux-gnu/libnss_winbind.so</code></pre>
 <pre><code class="fenced-code-block language-bash">ldconfig</code></pre>
-<h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
+<h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-etcprofile">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do /etc/profile:</h4>
 <h4 class="atx" id="pathandquotusrlocalsbinusrlocalbinusrsbinusrbinsbinbinoptsambabinoptsambasbinandquot">PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> ~/.bashrc</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/profile</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token string">"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</span></code></pre>
 <h4 class="atx" id="relendo-o-arquivo-de-profile">Relendo o arquivo de profile:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> ~/.bashrc</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> /etc/profile</code></pre>
 <h4 class="atx" id="criando-o-daemon-de-inicializacao-do-samba4-com-o-sistema">Criando o daemon de inicialização do Samba4 com o sistema:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/systemd/system/samba-ad-dc.service</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
@@ -1526,9 +1527,10 @@ officinas.edu.        3600    IN    SOA    pdc01.officinas.edu. hostmaster.offic
 ;; WHEN: Tue Jul 15 22:36:46 -03 2025
 ;; MSG SIZE  rcvd: 100</code></pre>
 <p>THAT’S ALL FOLKS!!</p>
-<h1 class="atx" id="controlador-de-dominio-secundario-com-samba4-no-debian-12">Controlador de Domínio secundário com Samba4 no Debian 12</h1>
+<h1 class="atx" id="controlador-de-dominio-secundario-com-samba4-no-debian-13">Controlador de Domínio secundário com Samba4 no Debian 13</h1>
 <h4 class="atx" id="layout-de-rede-usado-no-laboratorio-1">Layout de rede usado no laboratório:</h4>
-<pre><code class="fenced-code-block language-bash">firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
+<pre><code class="fenced-code-block language-bash">Domínio         officinas.edu
+firewall        <span class="token number">192.168</span>.70.254   <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
 pdc01           <span class="token number">192.168</span>.70.253   <span class="token punctuation">(</span>ssh <span class="token number">22253</span><span class="token punctuation">)</span>
 pdc02           <span class="token number">192.168</span>.70.252   <span class="token punctuation">(</span>ssh <span class="token number">22252</span><span class="token punctuation">)</span>
 intranet        <span class="token number">192.168</span>.70.251   <span class="token punctuation">(</span>ssh <span class="token number">22251</span><span class="token punctuation">)</span>
@@ -1589,12 +1591,12 @@ Address: <span class="token number">192.168</span>.70.252</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.4</code></pre>
 <pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">make</span> <span class="token operator">&amp;&amp;</span> <span class="token function">make</span> <span class="token function">install</span></code></pre>
-<h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc-1">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
+<h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-etcprofile-1">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do /etc/profile:</h4>
 <h4 class="atx" id="pathandquotusrlocalsbinusrlocalbinusrsbinusrbinsbinbinoptsambabinoptsambasbinandquot-1">PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> ~/.bashrc</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/profile</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token string">"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</span></code></pre>
 <h4 class="atx" id="relendo-o-arquivo-de-profile-1">Relendo o arquivo de profile:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> ~/.bashrc</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> /etc/profile</code></pre>
 <h4 class="atx" id="criando-o-daemon-de-inicializacao-do-samba4-com-o-sistema-1">Criando o daemon de inicialização do Samba4 com o sistema:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/systemd/system/samba-ad-dc.service</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token punctuation">[</span>Unit<span class="token punctuation">]</span>
@@ -1739,15 +1741,15 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <h4 class="atx" id="gerando-e-enviando-as-chaves-do-ssh-para-sincronizacao-entre-o-pdc01-e-o-pdc02-crie-as-chaves-no-pdc01-e-envie-a-chave-publica-para-o-pdc02">Gerando e enviando as chaves do ssh para sincronização entre o pdc01 e o pdc02 (crie as chaves NO pdc01 e envie a chave pública para o pdc02):</h4>
 <h4 class="atx" id="pode-deixar-a-senha-em-branco-se-preferir">(Pode deixar a senha em branco SE preferir)</h4>
 <pre><code class="fenced-code-block language-bash">ssh-keygen -t rsa -b <span class="token number">1024</span></code></pre>
-<pre><code class="fenced-code-block language-bash">ssh-copy-id -p22200 -i ~/.ssh/id_rsa.pub root@pdc02 <span class="token comment">#(O MEU pdc02 usa a porta ssh 22200)</span></code></pre>
+<pre><code class="fenced-code-block language-bash">ssh-copy-id -p22252 -i ~/.ssh/id_rsa.pub root@pdc02 <span class="token comment">#(O MEU pdc02 usa a porta ssh 22252)</span></code></pre>
 <h4 class="atx" id="testando-a-conexao-por-ssh-sem-pedir-senha-se-vc-deixou-em-branco">Testando a conexão por ssh sem pedir senha (SE vc deixou em branco):</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">ssh</span> -p22200 pdc02</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ssh</span> -p22252 pdc02</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">exit</span></code></pre>
 <h4 class="atx" id="agora-inverta-a-ordem-e-crie-as-chaves-no-pdc02-e-envie-para-o-pdc01-rode-estes-comandos-no-pdc02">Agora inverta a ordem e crie as chaves NO pdc02 e envie para o pdc01 (Rode estes comandos NO pdc02):</h4>
 <pre><code class="fenced-code-block language-bash">ssh-keygen -t rsa -b <span class="token number">1024</span></code></pre>
-<pre><code class="fenced-code-block language-bash">ssh-copy-id -p22250 -i ~/.ssh/id_rsa.pub root@pdc01 <span class="token comment">#(enviando para o pdc01, que usa porta ssh 22250)</span></code></pre>
+<pre><code class="fenced-code-block language-bash">ssh-copy-id -p22253 -i ~/.ssh/id_rsa.pub root@pdc01 <span class="token comment">#(enviando para o pdc01, que usa porta ssh 22253)</span></code></pre>
 <h4 class="atx" id="testando-a-conexao-por-ssh-sem-pedir-senha-se-vc-deixou-em-branco-1">Testando a conexão por ssh sem pedir senha (SE vc deixou em branco):</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">ssh</span> -p22250 pdc01</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">ssh</span> -p22253 pdc01</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">exit</span></code></pre>
 <h4 class="atx" id="criando-script-de-sincronizacao-com-rsync-do-diretorio-and39sysvoland39-do-pdc01-para-envio-ao-pdc02-rode-estes-comando-no-pdc01">Criando script de sincronização com rsync do diretório 'sysvol' DO pdc01 para envio ao pdc02 (rode estes comando NO pdc01):</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> /opt</code></pre>
@@ -1755,8 +1757,8 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token shebang important">#!/bin/bash</span>
 <span class="token comment"># Sincronizando Diretorios do Sysvol do pdc01 para envio ao pdc02:</span>
 <span class="token comment">#rsync -Cravz /opt/samba/var/locks/sysvol/*  root@192.168.70.252:/opt/samba/var/locks/sysvol/</span>
-<span class="token comment"># no MEU CASO onde a porta do ssh não á a default. MEU pdc02 usa 22200:</span>
-<span class="token function">rsync</span> -Cravz -e <span class="token string">"ssh -p 22200"</span> /opt/samba/var/locks/sysvol/*  root@192.168.70.252:/opt/samba/var/locks/sysvol/</code></pre>
+<span class="token comment"># no MEU CASO onde a porta do ssh não á a default. MEU pdc02 usa 22252:</span>
+<span class="token function">rsync</span> -Cravz -e <span class="token string">"ssh -p 22252"</span> /opt/samba/var/locks/sysvol/*  root@192.168.70.252:/opt/samba/var/locks/sysvol/</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x rsync-sysvol</code></pre>
 <pre><code class="fenced-code-block language-bash">./rsync-sysvol</code></pre>
 <h4 class="atx" id="agendando-a-sincronizacao-no-cron-do-pdc01">Agendando a sincronização no cron do pdc01:</h4>
@@ -1769,8 +1771,8 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token shebang important">#!/bin/bash</span>
 <span class="token comment"># Sincronizando Diretorios do Sysvol do pdc01 para envio ao pdc02:</span>
 <span class="token comment">#rsync -Cravz /opt/samba/var/locks/sysvol/*  root@192.168.70.253:/opt/samba/var/locks/sysvol/</span>
-<span class="token comment"># no MEU CASO onde a porta do ssh não á a default. MEU pdc01 usa 22250:</span>
-<span class="token function">rsync</span> -Cravz -e <span class="token string">"ssh -p 22250"</span> /opt/samba/var/locks/sysvol/*  root@192.168.70.253:/opt/samba/var/locks/sysvol/</code></pre>
+<span class="token comment"># no MEU CASO onde a porta do ssh não á a default. MEU pdc01 usa 22253:</span>
+<span class="token function">rsync</span> -Cravz -e <span class="token string">"ssh -p 22253"</span> /opt/samba/var/locks/sysvol/*  root@192.168.70.253:/opt/samba/var/locks/sysvol/</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">chmod</span> +x rsync-sysvol</code></pre>
 <pre><code class="fenced-code-block language-bash">./rsync-sysvol</code></pre>
 <h4 class="atx" id="agendando-a-sincronizacao-no-cron-do-pdc02">Agendando a sincronização no cron do pdc02:</h4>
@@ -1792,7 +1794,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 
 <span class="token assign-left variable">INITIATOR_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"/opt/samba/var/locks/sysvol"</span>
 
-<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.252:22200//opt/samba/var/locks/sysvol"</span>
+<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.252:22252//opt/samba/var/locks/sysvol"</span>
 
 <span class="token assign-left variable">SSH_RSA_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"/root/.ssh/id_rsa"</span>
 
@@ -1816,7 +1818,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 
 <span class="token assign-left variable">INITIATOR_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"/opt/samba/var/locks/sysvol"</span>
 
-<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.252:22200//opt/samba/var/locks/sysvol"</span>
+<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.252:22252//opt/samba/var/locks/sysvol"</span>
 
 <span class="token assign-left variable">SSH_RSA_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"/root/.ssh/id_rsa"</span>
 
@@ -1879,7 +1881,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 
 <span class="token assign-left variable">INITIATOR_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"/opt/samba/var/locks/sysvol"</span>
 
-<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.253:22250//opt/samba/var/locks/sysvol"</span>
+<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.253:22253//opt/samba/var/locks/sysvol"</span>
 
 <span class="token assign-left variable">SSH_RSA_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"/root/.ssh/id_rsa"</span>
 
@@ -1903,7 +1905,7 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 
 <span class="token assign-left variable">INITIATOR_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"/opt/samba/var/locks/sysvol"</span>
 
-<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.253:22250//opt/samba/var/locks/sysvol"</span>
+<span class="token assign-left variable">TARGET_SYNC_DIR</span><span class="token operator">=</span><span class="token string">"ssh://root@192.168.70.253:22253//opt/samba/var/locks/sysvol"</span>
 
 <span class="token assign-left variable">SSH_RSA_PRIVATE_KEY</span><span class="token operator">=</span><span class="token string">"/root/.ssh/id_rsa"</span>
 
@@ -1954,9 +1956,10 @@ nameserver       <span class="token number">127.0</span>.0.1</code></pre>
 <h4 class="atx" id="validando-os-logs-em-tempo-real-rode-o-usrlocalbinosyncsh-mantendo-outro-terminal-aberto-com-o-comando-1">Validando os logs em tempo real, rode o /usr/local/bin/osync.sh, mantendo outro terminal aberto com o comando:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">tail</span> -f /var/log/osync.sysvol_sync.log</code></pre>
 <p>THAT’S ALL FOLKS!!</p>
-<h1 class="atx" id="servidor-de-arquivos-com-samba4-no-debian-12">Servidor de Arquivos com Samba4 no Debian 12</h1>
+<h1 class="atx" id="servidor-de-arquivos-com-samba4-no-debian-13">Servidor de Arquivos com Samba4 no Debian 13</h1>
 <h4 class="atx" id="layout-de-rede-usado-no-laboratorio-2">Layout de rede usado no laboratório:</h4>
-<pre><code class="fenced-code-block language-bash">firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
+<pre><code class="fenced-code-block language-bash">Domínio         officinas.edu
+firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
 pdc01           <span class="token number">192.168</span>.70.253   <span class="token punctuation">(</span>ssh <span class="token number">22253</span><span class="token punctuation">)</span>
 pdc02           <span class="token number">192.168</span>.70.252   <span class="token punctuation">(</span>ssh <span class="token number">22252</span><span class="token punctuation">)</span>
 intranet        <span class="token number">192.168</span>.70.251   <span class="token punctuation">(</span>ssh <span class="token number">22251</span><span class="token punctuation">)</span>
@@ -2030,12 +2033,12 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /opt/samba/lib/libnss_winbind.so.2 /lib/x86_64-linux-gnu</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ln</span> -s /lib/x86_64-linux-gnu/libnss_winbind.so.2 /lib/x86_64-linux-gnu/libnss_winbind.so</code></pre>
 <pre><code class="fenced-code-block language-bash">ldconfig</code></pre>
-<h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc-2">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
+<h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-etcprofile-2">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do /etc/profile:</h4>
 <h4 class="atx" id="pathandquotusrlocalsbinusrlocalbinusrsbinusrbinsbinbinoptsambabinoptsambasbinandquot-2">PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> ~/.bashrc</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">vim</span> /etc/profile</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token assign-left variable"><span class="token environment constant">PATH</span></span><span class="token operator">=</span><span class="token string">"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/samba/bin:/opt/samba/sbin"</span></code></pre>
 <h4 class="atx" id="relendo-o-arquivo-de-profile-2">Relendo o arquivo de profile:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> ~/.bashrc</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">source</span> /etc/profile</code></pre>
 <h4 class="atx" id="atencao-nao-provisione-o-samba-do-arquivos">ATENÇÃO!! NÃO PROVISIONE O SAMBA DO arquivos!!</h4>
 <h4 class="atx" id="atencao-nao-provisione-o-samba-do-arquivos-1">ATENÇÃO!! NÃO PROVISIONE O SAMBA DO arquivos!!</h4>
 <h4 class="atx" id=""></h4>
@@ -2133,7 +2136,6 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
 <span class="token comment">#   %U|%I|%S</span></code></pre>
 <h4 class="atx" id="criando-o-diretorio-de-logs-do-samba">Criando o diretório de logs do samba:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">mkdir</span> -p /opt/samba/var/log/</code></pre>
-<h1 class="atx" id="validar-isso">VALIDAR ISSO!!</h1>
 <h4 class="atx" id="auditando-arquivos-deletados">Auditando arquivos deletados:</h4>
 <pre><code class="fenced-code-block language-bash"><span class="token function">cat</span> /var/log/syslog <span class="token operator">|</span> <span class="token function">grep</span> unlinkat</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">tail</span> -f /var/log/syslog <span class="token operator">|</span> <span class="token function">grep</span> unlinkat <span class="token comment">#(Teste em tempo real).</span></code></pre>
