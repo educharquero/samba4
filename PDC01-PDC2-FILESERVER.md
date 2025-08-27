@@ -1,4 +1,4 @@
-# Controlador de Domínio Primário, Secundário e arquivos no Debian Linux 12
+# Controlador de Domínio Primário, Secundário e arquivos no Debian Linux 13
 
 #### Layout de rede usado no laboratório:
 
