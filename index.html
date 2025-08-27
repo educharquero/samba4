@@ -1249,7 +1249,7 @@ pre[class*="language-"] {
 </head>
 <body>
   <article class="markdown-body"><h1 class="atx" id="controlador-de-dominio-primario-secundario-e-servidor-de-arquivos">Controlador de Domínio Primário, Secundário e Servidor de Arquivos</h1>
-<h1 class="atx" id="debian-linux-13---samba4-compilado">Debian Linux 13 - SAMBA4 compilado</h1>
+<h1 class="atx" id="debian-linux-13--samba4-compilado">Debian Linux 13 + SAMBA4 compilado</h1>
 <h4 class="atx" id="layout-de-rede-usado-no-laboratorio">Layout de rede usado no laboratório:</h4>
 <pre><code class="fenced-code-block language-bash">firewall        <span class="token number">192.168</span>.70.254 <span class="token punctuation">(</span>enp1s0<span class="token punctuation">)</span> - <span class="token number">192.168</span>.0.254 <span class="token punctuation">(</span>enp7s0<span class="token punctuation">)</span> <span class="token punctuation">(</span>ssh <span class="token number">22254</span><span class="token punctuation">)</span>
 pdc01           <span class="token number">192.168</span>.70.253   <span class="token punctuation">(</span>ssh <span class="token number">22253</span><span class="token punctuation">)</span>
@@ -1287,9 +1287,9 @@ nameserver         <span class="token number">192.168</span>.70.254</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -c addr</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -br <span class="token function">link</span></code></pre>
 <h4 class="atx" id="baixando-e-compilando-o-codigo-fonte-do-samba4">Baixando e compilando o código fonte do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.3</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.4.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.4.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.4</code></pre>
 <pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba <span class="token punctuation">\</span>
   --with-winbind <span class="token punctuation">\</span>
   --with-shared-modules<span class="token operator">=</span>idmap_rid,idmap_ad <span class="token punctuation">\</span></code></pre>
@@ -1429,7 +1429,7 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
     ---------       ----      -------
     sysvol          Disk      
     netlogon        Disk      
-    IPC$            IPC       IPC Service (Samba 4.22.3)
+    IPC$            IPC       IPC Service (Samba 4.22.4)
 SMB1 disabled -- no workgroup available</code></pre>
 <pre><code class="fenced-code-block language-bash">smbclient //localhost/netlogon -UAdministrator -c <span class="token string">"ls"</span></code></pre>
 <pre><code class="fenced-code-block">Password for [OFFICINAS\Administrator]:
@@ -1584,9 +1584,9 @@ Address: <span class="token number">192.168</span>.70.252</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -c addr</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -br <span class="token function">link</span></code></pre>
 <h4 class="atx" id="baixando-e-compilando-o-codigo-fonte-do-samba4-1">Baixando e compilando o código fonte do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.3</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.4.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.4.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.4</code></pre>
 <pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">make</span> <span class="token operator">&amp;&amp;</span> <span class="token function">make</span> <span class="token function">install</span></code></pre>
 <h4 class="atx" id="adicionando-optsamba-ao-path-padrao-do-linux-colando-a-linha-completa-ao-final-do-bashrc-1">Adicionando /opt/Samba ao path padrão do Linux, colando a linha completa ao final do .bashrc:</h4>
@@ -2010,9 +2010,9 @@ Address: <span class="token number">192.168</span>.70.253</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -c addr</code></pre>
 <pre><code class="fenced-code-block language-bash"><span class="token function">ip</span> -br <span class="token function">link</span></code></pre>
 <h4 class="atx" id="baixando-e-compilando-o-codigo-fonte-do-samba4-2">Baixando e compilando o código fonte do Samba4:</h4>
-<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.3.tar.gz</code></pre>
-<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.3</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">wget</span> https://download.samba.org/pub/samba/samba-4.22.4.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token function">tar</span> -xvzf samba-4.22.4.tar.gz</code></pre>
+<pre><code class="fenced-code-block language-bash"><span class="token builtin class-name">cd</span> samba-4.22.4</code></pre>
 <pre><code class="fenced-code-block language-bash">./configure --prefix<span class="token operator">=</span>/opt/samba <span class="token punctuation">\</span>
   --with-winbind <span class="token punctuation">\</span>
   --with-shared-modules<span class="token operator">=</span>idmap_rid,idmap_ad</code></pre>
